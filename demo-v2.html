@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+    <link rel="manifest" href="data:application/json,{'name':'C2W2 Virtual Runway','short_name':'C2W2','start_url':'.','display':'standalone','background_color':'%23000000','theme_color':'%23000000'}">
+
+    <title>C2W2 Virtual Runway - Ultra Premium Edition</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    backdropBlur: {
+                        'xs': '2px',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        @keyframes noise {
+            0%, 100% { background-position: 0 0; }
+            10% { background-position: -5% -10%; }
+            20% { background-position: -15% 5%; }
+            30% { background-position: 7% -25%; }
+            40% { background-position: 20% 25%; }
+            50% { background-position: -25% 10%; }
+            60% { background-position: 15% 5%; }
+            70% { background-position: 0% 15%; }
+            80% { background-position: 25% 35%; }
+            90% { background-position: -10% 10%; }
+        }
+
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            border-radius: inherit;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: noise 8s steps(10) infinite;
+        }
+
+        .carousel-container {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+
+        .carousel-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
+        }
+
+        .carousel-item {
+            scroll-snap-align: center;
+        }
+
+        .hotspot {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .hotspot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .hotspot::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: ping 2s ease-in-out infinite;
+        }
+
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        canvas { display: block; }
+
+        /* WCAG Compliant Focus Styles */
+        *:focus-visible {
+            outline: 3px solid rgba(59, 130, 246, 0.8);
+            outline-offset: 2px;
+        }
+    </style>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/",
+            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm",
+            "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm"
+        }
+    }
+    </script>
+</head>
+<body class="h-full overflow-hidden bg-black text-white font-sans antialiased">
+
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 flex flex-col items-center justify-center bg-black/95 z-50 transition-opacity duration-1000">
+        <div class="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin mb-8"></div>
+        <div class="text-sm tracking-[0.3em] uppercase text-white/80 mb-3">Loading Experience</div>
+        <div id="loadingProgress" class="text-xs tracking-wider text-white/50">Initializing...</div>
+    </div>
+
+    <!-- Background Image -->
+    <img id="backgroundImg" src="https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/VEADEMO1.jpg"
+         alt="Background" class="fixed inset-0 w-full h-full object-cover z-[5] hidden transition-opacity duration-1000">
+
+    <!-- Scene Transition Overlay -->
+    <div id="sceneTransition" class="fixed inset-0 bg-black pointer-events-none z-40 opacity-0 transition-all duration-1000"></div>
+
+    <!-- Instructions Modal -->
+    <div id="instructions" class="fixed inset-0 flex items-center justify-center z-[15] hidden">
+        <div class="glass-panel relative rounded-2xl px-16 py-12 text-center max-w-md mx-4">
+            <h1 class="text-4xl font-extralight tracking-[0.3em] uppercase mb-6 bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+                Click to Enter
+            </h1>
+            <p class="text-sm text-white/60 tracking-wide">Experience begins in a moment</p>
+        </div>
+    </div>
+
+    <!-- Main UI Container -->
+    <div id="mainUI" class="fixed inset-0 pointer-events-none z-10">
+
+        <!-- Top Bar -->
+        <div class="absolute top-5 left-5 right-5 flex items-start justify-between pointer-events-auto">
+            <!-- Model Label & Carousel -->
+            <div class="flex items-center gap-4">
+                <div id="modelLabel" class="text-xs font-semibold tracking-[0.2em] uppercase hidden">Model</div>
+                <div id="modelToggleContainer" class="hidden overflow-x-hidden carousel-container max-w-[calc(100vw-200px)] flex gap-3 flex-wrap">
+                    <!-- Buttons will be dynamically created -->
+                </div>
+            </div>
+
+            <!-- Utility Buttons -->
+            <div class="flex items-center gap-2">
+                <button id="dayNightToggle" aria-label="Toggle Day/Night"
+                        class="glass-panel p-3 rounded-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105" title="Toggle Day/Night">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </button>
+                <button id="screenshotBtn" aria-label="Take Screenshot"
+                        class="glass-panel p-3 rounded-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105" title="Take Screenshot">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </button>
+                <button id="configuratorBtn" aria-label="Open Configurator"
+                        class="glass-panel p-3 rounded-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105" title="Configurator">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Side Panels -->
+        <div class="absolute top-24 left-5 bottom-32 w-72 overflow-y-auto glass-panel rounded-xl p-6 text-sm leading-relaxed hidden transform -translate-x-[120%] transition-transform duration-700 ease-out" id="leftPanel">
+            <!-- Content will be dynamically loaded -->
+        </div>
+
+        <div class="absolute top-24 right-5 bottom-32 w-72 overflow-y-auto glass-panel rounded-xl p-6 text-sm leading-relaxed hidden transform translate-x-[120%] transition-transform duration-700 ease-out" id="rightPanel">
+            <!-- Content will be dynamically loaded -->
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="absolute bottom-5 left-5 right-5 flex items-end justify-between pointer-events-auto">
+            <div class="flex gap-3">
+                <button id="previousButton" aria-label="Previous Scene"
+                        class="glass-panel px-8 py-4 rounded-xl text-sm font-medium tracking-wider uppercase hover:bg-white/20 transition-all duration-300 transform hover:scale-105 hidden">
+                    Previous
+                </button>
+                <button id="nextButton" aria-label="Next Scene"
+                        class="glass-panel px-10 py-4 rounded-xl text-sm font-medium tracking-wider uppercase hover:bg-white/20 transition-all duration-300 transform hover:scale-105 hidden">
+                    Start
+                </button>
+            </div>
+
+            <div id="description" class="glass-panel px-7 py-4 rounded-xl text-sm tracking-wide max-w-xl mx-auto hidden">
+                <!-- Description text -->
+            </div>
+
+            <div id="fpsCounter" class="glass-panel px-4 py-2 rounded-lg text-xs font-mono tracking-wider">
+                <span id="fpsValue">60</span> FPS
+            </div>
+        </div>
+
+        <!-- Hotspots Container (Scene 1 & 4) -->
+        <div id="hotspotsContainer" class="absolute inset-0 hidden pointer-events-none">
+            <!-- Hotspots will be dynamically positioned -->
+        </div>
+
+        <!-- Hotspot Popup (Small Local Tooltip) -->
+        <div id="hotspotPopup" class="fixed z-50 hidden pointer-events-auto" style="max-width: 280px;">
+            <div class="glass-panel rounded-xl p-4 shadow-2xl">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 id="hotspotTitle" class="text-sm font-semibold tracking-wide uppercase text-white"></h4>
+                    <button id="closeHotspotPopup" class="text-white/60 hover:text-white ml-2 text-lg leading-none">&times;</button>
+                </div>
+                <p id="hotspotDistance" class="text-xs text-white/70 mb-2"></p>
+                <p id="hotspotInfo" class="text-xs text-white/90 mb-3 leading-relaxed"></p>
+                <a id="hotspotMapsLink" href="#" target="_blank"
+                   class="glass-panel px-4 py-2 rounded-lg text-xs tracking-wider uppercase hover:bg-white/20 transition-all inline-block w-full text-center">
+                    Open in Maps →
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Configurator Panel -->
+    <div id="configuratorPanel" class="fixed top-20 right-5 w-80 glass-panel rounded-xl p-6 z-20 hidden transform translate-x-[120%] transition-transform duration-500">
+        <h3 class="text-lg font-light tracking-wider uppercase mb-6 border-b border-white/10 pb-3">Live Configurator</h3>
+
+        <div class="space-y-6">
+            <div>
+                <label class="text-xs tracking-wide uppercase text-white/70 mb-2 block">Sun Light Color</label>
+                <input type="color" id="sunColorPicker" value="#fff9f0"
+                       class="w-full h-10 rounded cursor-pointer border border-white/10">
+            </div>
+
+            <div>
+                <label class="text-xs tracking-wide uppercase text-white/70 mb-2 block">Light Intensity</label>
+                <input type="range" id="lightIntensity" min="0" max="5" step="0.1" value="2.8"
+                       class="w-full accent-white">
+                <span id="lightIntensityValue" class="text-xs text-white/50">2.8</span>
+            </div>
+
+            <div>
+                <label class="text-xs tracking-wide uppercase text-white/70 mb-2 block">Environment</label>
+                <input type="range" id="envIntensity" min="0" max="2" step="0.1" value="0.6"
+                       class="w-full accent-white">
+                <span id="envIntensityValue" class="text-xs text-white/50">0.6</span>
+            </div>
+
+            <button id="resetConfig"
+                    class="w-full glass-panel py-2 rounded-lg text-xs tracking-wider uppercase hover:bg-white/20 transition-all">
+                Reset to Default
+            </button>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="fixed glass-panel px-4 py-2 rounded-lg text-xs tracking-wide pointer-events-none z-50 opacity-0 transition-opacity duration-200 whitespace-nowrap">
+        <!-- Tooltip text -->
+    </div>
+
+    <!-- HTML Content Store -->
+    <div id="htmlContentStore" class="hidden">
+        <div id="html_scene0_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Distinguished Living</h3>
+            <p class="text-white/80">Experience an architectural masterpiece that redefines urban luxury. This exclusive development seamlessly integrates contemporary design with the vibrant energy of metropolitan living.</p>
+        </div>
+        <div id="html_scene0_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Architectural Vision</h3>
+            <p class="text-white/80">Isometric presentation revealing the complete design philosophy. Every angle crafted with precision, every detail considered for your elevated lifestyle.</p>
+        </div>
+
+        <div id="html_scene1_opt1_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Prime Location</h3>
+            <p class="text-white/80">Nestled in the heart of the city's most prestigious neighborhood, surrounded by cultural landmarks and urban sophistication.</p>
+        </div>
+        <div id="html_scene1_opt1_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Urban Integration</h3>
+            <p class="text-white/80">Seamlessly woven into the urban fabric, offering unparalleled connectivity while maintaining exclusive privacy.</p>
+        </div>
+
+        <div id="html_scene1_opt2_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Connected Living</h3>
+            <p class="text-white/80">• Metro Station: 5 minutes<br>• Shopping District: 17 minutes<br>• City Center: 10 minutes</p>
+        </div>
+        <div id="html_scene1_opt2_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Transit Excellence</h3>
+            <p class="text-white/80">World-class public transportation at your doorstep. Live where accessibility meets exclusivity.</p>
+        </div>
+
+        <div id="html_scene1_opt3_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Curated Residences</h3>
+            <p class="text-white/80">A carefully selected collection of residential units, each offering unique floor plans designed for discerning clientele.</p>
+        </div>
+        <div id="html_scene1_opt3_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Flexible Spaces</h3>
+            <p class="text-white/80">Contemporary layouts that adapt to your lifestyle, featuring premium finishes and intelligent design.</p>
+        </div>
+
+        <div id="html_scene2_opt1_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Pure Elegance</h3>
+            <p class="text-white/80">White facade concept: Timeless sophistication meets modern minimalism. Clean lines, natural light, refined aesthetics.</p>
+        </div>
+        <div id="html_scene2_opt1_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Material Excellence</h3>
+            <p class="text-white/80">Premium materials sourced globally. Every surface, every texture selected for enduring beauty.</p>
+        </div>
+
+        <div id="html_scene2_opt2_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Bold Expression</h3>
+            <p class="text-white/80">Metallic facade concept: Architectural statement of contemporary power. Dynamic surfaces that interact with light and environment.</p>
+        </div>
+        <div id="html_scene2_opt2_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Alternative Vision</h3>
+            <p class="text-white/80">A different approach to luxury. Modern industrial aesthetics with uncompromising refinement.</p>
+        </div>
+
+        <div id="html_scene3_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Intelligent Design</h3>
+            <p class="text-white/80">Ghost view revealing the sophisticated internal organization. Structural innovation meets functional excellence.</p>
+        </div>
+        <div id="html_scene3_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Systems Integration</h3>
+            <p class="text-white/80">State-of-the-art building systems. Vertical circulation designed for efficiency and comfort.</p>
+        </div>
+
+        <div id="html_scene4_cam1_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Grand Salon</h3><p class="text-white/80 text-sm">Floor-to-ceiling windows flood the expansive living area with natural light.</p></div>
+        <div id="html_scene4_cam1_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Living Excellence</h3><p class="text-white/80 text-sm">Curated for entertaining and daily luxury.</p></div>
+
+        <div id="html_scene4_cam2_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Culinary Theater</h3><p class="text-white/80 text-sm">Premium Italian appliances. Marble countertops. Chef's dream realized.</p></div>
+        <div id="html_scene4_cam2_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Gourmet Kitchen</h3><p class="text-white/80 text-sm">Where function meets high design.</p></div>
+
+        <div id="html_scene4_cam3_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Master Sanctuary</h3><p class="text-white/80 text-sm">Private retreat with sophisticated finishes and serene ambiance.</p></div>
+        <div id="html_scene4_cam3_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Rest & Rejuvenation</h3><p class="text-white/80 text-sm">Your personal haven.</p></div>
+
+        <div id="html_scene4_cam4_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Spa Experience</h3><p class="text-white/80 text-sm">Master bathroom featuring premium fixtures and luxurious materials.</p></div>
+        <div id="html_scene4_cam4_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Wellness Suite</h3><p class="text-white/80 text-sm">Hotel-grade amenities.</p></div>
+
+        <div id="html_scene4_cam5_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Secondary Suite</h3><p class="text-white/80 text-sm">Versatile space for guests, family, or home office.</p></div>
+        <div id="html_scene4_cam5_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Flexible Living</h3><p class="text-white/80 text-sm">Adaptable to your needs.</p></div>
+
+        <div id="html_scene4_cam6_left"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Guest Bath</h3><p class="text-white/80 text-sm">Full amenities with contemporary styling.</p></div>
+        <div id="html_scene4_cam6_right"><h3 class="text-lg font-light tracking-wider uppercase mb-3">Complete Comfort</h3><p class="text-white/80 text-sm">Attention to every detail.</p></div>
+
+        <div id="html_scene5_left">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Free Exploration</h3>
+            <p class="text-white/80 text-sm">• W/A/S/D: Move<br>• Shift: Sprint<br>• Space: Jump<br>• Mouse: Look around</p>
+        </div>
+        <div id="html_scene5_right">
+            <h3 class="text-xl font-light tracking-wider uppercase mb-4">Virtual Walkthrough</h3>
+            <p class="text-white/80">Experience the space at your own pace. Feel the flow, discover the details.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+        import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+        import { VRButton } from 'three/addons/webxr/VRButton.js';
+        import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+        import gsap from 'gsap';
+        import * as CANNON from 'cannon-es';
+
+        // ============================================
+        // CONFIGURATION OBJECT
+        // ============================================
+        const CONFIG = {
+            models: [
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-opt-v2.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-ghost.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-metal-v1.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-whitefacade-v3.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2kopuk-normalfacade-opt-v5.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2-sehirici-apartmanici-opt-v6.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2interior-soloapartement-opt-v4.glb',
+                'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/SCENE5-COLLDERd.glb'
+            ],
+            hdri: {
+                day: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr',
+                night: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/equirectangular/moonless_golf_1k.hdr'
+            },
+            dracoPath: 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/',
+            physics: {
+                gravity: -20,
+                playerHeight: 1.6,
+                playerRadius: 0.4,
+                baseMoveSpeed: 20,
+                sprintMultiplier: 4,
+                jumpVelocity: 6
+            },
+            camera: {
+                defaultFOV: 90,
+                orthoFrustumSize: 40
+            },
+            quality: {
+                targetFPS: 45,
+                ssaoEnabled: true,
+                bloomEnabled: true,
+                shadowsEnabled: true
+            },
+            lighting: {
+                sunColor: 0xfff9f0,
+                sunIntensity: 2.8,
+                envIntensity: 0.6
+            },
+            hotspots: {
+                surrounding: [
+                    { name: 'Central Park', distance: '800m', info: 'Beautiful green space perfect for morning walks', mapsLink: 'https://maps.google.com/?q=40.785091,-73.968285', pos: { x: -8, y: 2, z: 5 } },
+                    { name: 'Shopping District', distance: '1.2km', info: 'Luxury retail and boutiques', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 6, y: 1.5, z: -7 } },
+                    { name: 'Cultural Center', distance: '600m', info: 'Museum and art galleries', mapsLink: 'https://maps.google.com/?q=40.779437,-73.963244', pos: { x: -5, y: 3, z: -6 } },
+                    { name: 'Premium Restaurant Row', distance: '450m', info: 'Fine dining establishments', mapsLink: 'https://maps.google.com/?q=40.762737,-73.983739', pos: { x: 7, y: 2.5, z: 4 } },
+                    { name: 'Business District', distance: '2.1km', info: 'Major corporate offices', mapsLink: 'https://maps.google.com/?q=40.752726,-73.977229', pos: { x: -9, y: 1, z: -3 } },
+                    { name: 'Riverside Promenade', distance: '1.5km', info: 'Waterfront walking path', mapsLink: 'https://maps.google.com/?q=40.722012,-74.006747', pos: { x: 4, y: 0.5, z: 8 } },
+                    { name: 'International School', distance: '900m', info: 'Top-rated educational facility', mapsLink: 'https://maps.google.com/?q=40.774368,-73.965849', pos: { x: -6, y: 2, z: 7 } },
+                    { name: 'Luxury Spa & Wellness', distance: '320m', info: 'Premium health facilities', mapsLink: 'https://maps.google.com/?q=40.767778,-73.980556', pos: { x: 3, y: 1, z: -5 } },
+                    { name: 'Artisan Market', distance: '1.8km', info: 'Organic produce and local crafts', mapsLink: 'https://maps.google.com/?q=40.728224,-73.995643', pos: { x: 8, y: 1.5, z: -8 } },
+                    { name: 'Boutique Cinema', distance: '550m', info: 'Independent film theater', mapsLink: 'https://maps.google.com/?q=40.730610,-73.989040', pos: { x: -7, y: 2.5, z: -4 } }
+                ],
+                transportation: [
+                    { name: 'Metro Station - Line A', distance: '250m', info: 'Direct connection to city center (5 min walk)', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -3, y: 0.5, z: 6 } },
+                    { name: 'Bus Hub', distance: '180m', info: 'Multiple routes to all districts', mapsLink: 'https://maps.google.com/?q=40.759011,-73.984528', pos: { x: 5, y: 0.5, z: -4 } },
+                    { name: 'Metro Station - Line B', distance: '650m', info: 'Express line to airport', mapsLink: 'https://maps.google.com/?q=40.761431,-73.983433', pos: { x: -6, y: 0.5, z: -5 } },
+                    { name: 'Taxi Stand', distance: '120m', info: '24/7 available', mapsLink: 'https://maps.google.com/?q=40.758432,-73.984891', pos: { x: 2, y: 0.5, z: 3 } },
+                    { name: 'Bike Share Station', distance: '90m', info: 'Eco-friendly transportation', mapsLink: 'https://maps.google.com/?q=40.758123,-73.985421', pos: { x: -2, y: 0.5, z: -3 } },
+                    { name: 'Electric Scooter Hub', distance: '200m', info: 'Quick urban mobility', mapsLink: 'https://maps.google.com/?q=40.759234,-73.984123', pos: { x: 4, y: 0.5, z: 5 } },
+                    { name: 'Car Share Parking', distance: '350m', info: 'Premium vehicle fleet', mapsLink: 'https://maps.google.com/?q=40.760123,-73.983567', pos: { x: -5, y: 0.5, z: 4 } },
+                    { name: 'Helipad', distance: '3.2km', info: 'Private helicopter service', mapsLink: 'https://maps.google.com/?q=40.771199,-73.976809', pos: { x: 9, y: 0.5, z: -9 } },
+                    { name: 'Ferry Terminal', distance: '2.8km', info: 'Water taxi to downtown', mapsLink: 'https://maps.google.com/?q=40.706877,-74.017890', pos: { x: -8, y: 0.5, z: 8 } },
+                    { name: 'Train Station', distance: '1.1km', info: 'Inter-city rail connections', mapsLink: 'https://maps.google.com/?q=40.752998,-73.977056', pos: { x: 6, y: 0.5, z: -6 } }
+                ],
+                units: [
+                    { name: 'Penthouse Suite', distance: 'Top Floor', info: '360° panoramic views, private terrace', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 0, y: 12, z: 0 } },
+                    { name: '2BR Corner Unit', distance: '12th Floor', info: 'Dual aspect, premium finishes', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 3, y: 8, z: 3 } },
+                    { name: 'Studio Loft', distance: '8th Floor', info: 'Modern minimalist design', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -3, y: 5, z: -3 } },
+                    { name: '3BR Family Home', distance: '15th Floor', info: 'Spacious layout, kids room', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 2, y: 10, z: -2 } },
+                    { name: 'Garden Apartment', distance: 'Ground Floor', info: 'Private outdoor space', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -4, y: 0.5, z: 4 } },
+                    { name: '1BR Smart Home', distance: '6th Floor', info: 'Fully automated systems', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 3, y: 4, z: -3 } },
+                    { name: 'Duplex Residence', distance: '18-19th Floor', info: 'Two-story luxury living', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -2, y: 11, z: 2 } },
+                    { name: '2BR + Den', distance: '10th Floor', info: 'Home office included', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -3, y: 7, z: 3 } },
+                    { name: 'Executive Suite', distance: '20th Floor', info: 'VIP amenities access', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: 1, y: 13, z: -1 } },
+                    { name: 'Art Collector Unit', distance: '14th Floor', info: 'Gallery walls, high ceilings', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130', pos: { x: -2, y: 9, z: -2 } }
+                ]
+            }
+        };
+
+        // ============================================
+        // ANALYTICS MODULE
+        // ============================================
+        class Analytics {
+            static trackEvent(category, action, label = '') {
+                console.log(`[Analytics] ${category} / ${action}${label ? ' / ' + label : ''}`);
+                // TODO: Integrate with Google Analytics / Mixpanel
+                // gtag('event', action, { event_category: category, event_label: label });
+            }
+
+            static trackSceneChange(sceneNumber) {
+                this.trackEvent('Navigation', 'Scene Change', `Scene ${sceneNumber}`);
+            }
+
+            static trackButtonClick(buttonName) {
+                this.trackEvent('Interaction', 'Button Click', buttonName);
+            }
+
+            static trackPerformance(fps) {
+                if (fps < 30) {
+                    this.trackEvent('Performance', 'Low FPS', `${fps} FPS`);
+                }
+            }
+        }
+
+        // ============================================
+        // QUALITY MANAGER (Dynamic LOD & Post-Processing)
+        // ============================================
+        class QualityManager {
+            constructor(renderer, composer) {
+                this.renderer = renderer;
+                this.composer = composer;
+                this.fpsHistory = [];
+                this.maxHistoryLength = 60;
+                this.currentQuality = 'high';
+                this.ssaoPass = null;
+                this.bloomPass = null;
+            }
+
+            setPasses(ssaoPass, bloomPass) {
+                this.ssaoPass = ssaoPass;
+                this.bloomPass = bloomPass;
+            }
+
+            updateFPS(fps) {
+                this.fpsHistory.push(fps);
+                if (this.fpsHistory.length > this.maxHistoryLength) {
+                    this.fpsHistory.shift();
+                }
+
+                const avgFPS = this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length;
+
+                if (avgFPS < CONFIG.quality.targetFPS && this.currentQuality === 'high') {
+                    this.degradeQuality();
+                } else if (avgFPS > 55 && this.currentQuality === 'low') {
+                    this.restoreQuality();
+                }
+
+                Analytics.trackPerformance(avgFPS);
+            }
+
+            degradeQuality() {
+                console.log('🔻 Quality Manager: Degrading quality for performance');
+                this.currentQuality = 'low';
+
+                if (this.ssaoPass) this.ssaoPass.enabled = false;
+                if (this.bloomPass) this.bloomPass.enabled = false;
+
+                this.renderer.shadowMap.enabled = false;
+                this.renderer.setPixelRatio(1);
+            }
+
+            restoreQuality() {
+                console.log('🔺 Quality Manager: Restoring high quality');
+                this.currentQuality = 'high';
+
+                if (this.ssaoPass) this.ssaoPass.enabled = CONFIG.quality.ssaoEnabled;
+                if (this.bloomPass) this.bloomPass.enabled = CONFIG.quality.bloomEnabled;
+
+                this.renderer.shadowMap.enabled = CONFIG.quality.shadowsEnabled;
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            }
+        }
+
+        // ============================================
+        // SCENE MANAGER (Handles transitions & state)
+        // ============================================
+        class SceneManager {
+            constructor(app) {
+                this.app = app;
+                this.currentScene = -1;
+                this.isTransitioning = false;
+            }
+
+            async transitionTo(sceneNum) {
+                if (this.isTransitioning) return;
+                this.isTransitioning = true;
+
+                Analytics.trackSceneChange(sceneNum);
+
+                // Simplified transition (fixed)
+                const overlay = document.getElementById('sceneTransition');
+
+                try {
+                    // Fade to black
+                    await gsap.to(overlay, {
+                        opacity: 1,
+                        duration: 0.5,
+                        ease: 'power2.inOut'
+                    });
+
+                    // Load new scene
+                    this.currentScene = sceneNum;
+                    await this.app.executeScene(sceneNum);
+
+                    // Small delay to ensure scene is ready
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // Fade back in
+                    await gsap.to(overlay, {
+                        opacity: 0,
+                        duration: 0.5,
+                        ease: 'power2.inOut'
+                    });
+
+                } catch (error) {
+                    console.error('Transition error:', error);
+                    overlay.style.opacity = '0'; // Force show scene even if error
+                } finally {
+                    this.isTransitioning = false;
+                }
+            }
+
+            getCurrentScene() {
+                return this.currentScene;
+            }
+        }
+
+        // ============================================
+        // MAIN APPLICATION CLASS
+        // ============================================
+        class VirtualRunwayApp {
+            constructor() {
+                this.scene = null;
+                this.renderer = null;
+                this.composer = null;
+                this.camera = null;
+                this.perspectiveCamera = null;
+                this.orthographicCamera = null;
+                this.orbitControls = null;
+                this.pointerLockControls = null;
+                this.pmremGenerator = null;
+                this.clock = new THREE.Clock();
+
+                this.gltfLoader = null;
+                this.audioListener = null;
+
+                this.allModels = {};
+                this.colliderMeshes = [];
+                this.physicsWorld = null;
+                this.playerBody = null;
+
+                this.experienceStarted = false;
+                this.vrActive = false;
+                this.vrControllers = [];
+                this.isDayMode = true;
+
+                this.playerVelocity = new THREE.Vector3();
+                this.playerOnFloor = false;
+                this.currentMoveSpeed = CONFIG.physics.baseMoveSpeed;
+                this.keys = {
+                    forward: false, backward: false, left: false, right: false,
+                    jump: false, sprint: false
+                };
+
+                this.raycaster = new THREE.Raycaster();
+                this.playerRig = new THREE.Group();
+
+                this.qualityManager = null;
+                this.sceneManager = null;
+
+                this.sunLight = null;
+                this.currentHDRI = null;
+
+                this.fps = 60;
+                this.lastTime = performance.now();
+                this.frames = 0;
+
+                this.activeHotspots = [];
+                this.currentHotspotType = null;
+
+                this.DOM = this.initDOM();
+            }
+
+            initDOM() {
+                return {
+                    loading: document.getElementById('loading'),
+                    loadingProgress: document.getElementById('loadingProgress'),
+                    backgroundImg: document.getElementById('backgroundImg'),
+                    instructions: document.getElementById('instructions'),
+                    previousButton: document.getElementById('previousButton'),
+                    nextButton: document.getElementById('nextButton'),
+                    modelLabel: document.getElementById('modelLabel'),
+                    modelToggleContainer: document.getElementById('modelToggleContainer'),
+                    description: document.getElementById('description'),
+                    leftPanel: document.getElementById('leftPanel'),
+                    rightPanel: document.getElementById('rightPanel'),
+                    fpsCounter: document.getElementById('fpsValue'),
+                    tooltip: document.getElementById('tooltip'),
+                    dayNightToggle: document.getElementById('dayNightToggle'),
+                    screenshotBtn: document.getElementById('screenshotBtn'),
+                    configuratorBtn: document.getElementById('configuratorBtn'),
+                    configuratorPanel: document.getElementById('configuratorPanel'),
+                    sunColorPicker: document.getElementById('sunColorPicker'),
+                    lightIntensity: document.getElementById('lightIntensity'),
+                    lightIntensityValue: document.getElementById('lightIntensityValue'),
+                    envIntensity: document.getElementById('envIntensity'),
+                    envIntensityValue: document.getElementById('envIntensityValue'),
+                    resetConfig: document.getElementById('resetConfig'),
+                    hotspotsContainer: document.getElementById('hotspotsContainer')
+                };
+            }
+
+            async init() {
+                console.log('🚀 Initializing Ultra Premium Experience...');
+
+                this.setupRenderer();
+                this.setupCameras();
+                this.setupControls();
+                this.setupLights();
+                this.setupPostProcessing();
+                this.setupLoaders();
+                this.setupPhysics();
+
+                this.qualityManager = new QualityManager(this.renderer, this.composer);
+                this.sceneManager = new SceneManager(this);
+
+                await this.loadHDRI('day');
+                await this.preloadAllModels();
+                await this.checkVRSupport();
+
+                this.setupEventListeners();
+                this.setupConfigurator();
+                this.setupTooltips();
+
+                this.renderer.setAnimationLoop(() => this.animate());
+
+                this.DOM.loading.classList.add('opacity-0');
+                setTimeout(() => {
+                    this.DOM.loading.classList.add('hidden');
+                    this.DOM.instructions.classList.remove('hidden');
+                }, 1000);
+
+                console.log('✅ Ready');
+            }
+
+            setupRenderer() {
+                this.scene = new THREE.Scene();
+
+                this.renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    powerPreference: 'high-performance',
+                    preserveDrawingBuffer: true // For screenshots
+                });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.1;
+                this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+                this.renderer.xr.enabled = true;
+                document.body.appendChild(this.renderer.domElement);
+
+                this.pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+                this.pmremGenerator.compileEquirectangularShader();
+            }
+
+            setupCameras() {
+                const aspect = window.innerWidth / window.innerHeight;
+
+                this.perspectiveCamera = new THREE.PerspectiveCamera(CONFIG.camera.defaultFOV, aspect, 0.1, 1000);
+
+                const frustum = CONFIG.camera.orthoFrustumSize;
+                this.orthographicCamera = new THREE.OrthographicCamera(
+                    frustum * aspect / -2, frustum * aspect / 2,
+                    frustum / 2, frustum / -2,
+                    0.1, 1000
+                );
+
+                this.camera = this.perspectiveCamera;
+                this.scene.add(this.playerRig);
+                this.playerRig.add(this.camera);
+
+                this.audioListener = new THREE.AudioListener();
+                this.camera.add(this.audioListener);
+            }
+
+            setupControls() {
+                this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+                this.orbitControls.enabled = false;
+                this.orbitControls.enableDamping = true;
+                this.orbitControls.dampingFactor = 0.05;
+                this.orbitControls.target.set(0, 1, 0);
+
+                this.orbitControls.addEventListener('start', () => {
+                    if (this.orbitControls.autoRotate) {
+                        this.orbitControls.autoRotate = false;
+                        console.log('Auto-rotate disabled by user interaction');
+                    }
+                });
+
+                this.pointerLockControls = new PointerLockControls(this.perspectiveCamera, this.renderer.domElement);
+                this.scene.add(this.pointerLockControls.getObject());
+            }
+
+            setupLights() {
+                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.3);
+                hemiLight.position.set(0, 20, 0);
+                this.scene.add(hemiLight);
+
+                this.sunLight = new THREE.DirectionalLight(CONFIG.lighting.sunColor, CONFIG.lighting.sunIntensity);
+                this.sunLight.position.set(12, 24, 12);
+                this.sunLight.castShadow = true;
+                this.sunLight.shadow.mapSize.set(2048, 2048);
+                this.sunLight.shadow.camera.near = 0.5;
+                this.sunLight.shadow.camera.far = 160;
+                this.sunLight.shadow.camera.left = -55;
+                this.sunLight.shadow.camera.right = 55;
+                this.sunLight.shadow.camera.top = 55;
+                this.sunLight.shadow.camera.bottom = -55;
+                this.sunLight.shadow.bias = -0.0001;
+                this.sunLight.shadow.normalBias = 0.025;
+                this.scene.add(this.sunLight);
+
+                const fillLight = new THREE.DirectionalLight(0xe8f4ff, 0.4);
+                fillLight.position.set(-8, 10, -8);
+                this.scene.add(fillLight);
+            }
+
+            setupPostProcessing() {
+                this.composer = new EffectComposer(this.renderer);
+
+                const renderPass = new RenderPass(this.scene, this.camera);
+                this.composer.addPass(renderPass);
+
+                const ssaoPass = new SSAOPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
+                ssaoPass.kernelRadius = 0.8;
+                ssaoPass.minDistance = 0.001;
+                ssaoPass.maxDistance = 0.05;
+                this.composer.addPass(ssaoPass);
+
+                const bloomPass = new UnrealBloomPass(
+                    new THREE.Vector2(window.innerWidth, window.innerHeight),
+                    0.3, 0.25, 0.9
+                );
+                this.composer.addPass(bloomPass);
+
+                const outputPass = new OutputPass();
+                this.composer.addPass(outputPass);
+
+                this.qualityManager = new QualityManager(this.renderer, this.composer);
+                this.qualityManager.setPasses(ssaoPass, bloomPass);
+            }
+
+            setupLoaders() {
+                const dracoLoader = new DRACOLoader();
+                dracoLoader.setDecoderPath(CONFIG.dracoPath);
+                dracoLoader.setDecoderConfig({ type: 'js' });
+
+                this.gltfLoader = new GLTFLoader();
+                this.gltfLoader.setDRACOLoader(dracoLoader);
+                this.gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            }
+
+            setupPhysics() {
+                this.physicsWorld = new CANNON.World({
+                    gravity: new CANNON.Vec3(0, CONFIG.physics.gravity, 0)
+                });
+
+                this.physicsWorld.defaultContactMaterial.friction = 0.3;
+                this.physicsWorld.defaultContactMaterial.restitution = 0.1;
+
+                // Player body
+                const playerShape = new CANNON.Sphere(CONFIG.physics.playerRadius);
+                this.playerBody = new CANNON.Body({
+                    mass: 75,
+                    shape: playerShape,
+                    linearDamping: 0.9,
+                    angularDamping: 0.9
+                });
+                this.playerBody.position.set(1.4, CONFIG.physics.playerHeight, -0.6);
+                this.physicsWorld.addBody(this.playerBody);
+            }
+
+            async loadHDRI(mode = 'day') {
+                return new Promise((resolve) => {
+                    const hdriUrl = CONFIG.hdri[mode];
+                    new RGBELoader().load(
+                        hdriUrl,
+                        (texture) => {
+                            texture.mapping = THREE.EquirectangularReflectionMapping;
+
+                            // DON'T show HDRI until experience starts!
+                            if (this.experienceStarted) {
+                                this.scene.background = texture;
+                            }
+
+                            if (this.currentHDRI) {
+                                this.currentHDRI.dispose();
+                            }
+
+                            this.scene.environment = this.pmremGenerator.fromEquirectangular(texture).texture;
+                            this.currentHDRI = texture;
+
+                            console.log(`✅ HDRI loaded (${mode})`);
+                            resolve();
+                        },
+                        undefined,
+                        () => {
+                            console.warn('HDRI failed, continuing...');
+                            resolve();
+                        }
+                    );
+                });
+            }
+
+            async preloadAllModels() {
+                this.DOM.loadingProgress.textContent = 'Loading all models...';
+
+                const loadPromises = CONFIG.models.map((url, index) => {
+                    return new Promise((resolve) => {
+                        this.gltfLoader.load(
+                            url,
+                            (gltf) => {
+                                const model = gltf.scene;
+                                model.visible = false;
+
+                                let mixer = null;
+                                if (gltf.animations && gltf.animations.length > 0) {
+                                    mixer = new THREE.AnimationMixer(model);
+                                    gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+                                }
+
+                                model.traverse((child) => {
+                                    if (child.isMesh) {
+                                        child.castShadow = true;
+                                        child.receiveShadow = true;
+                                        if (child.material && child.material.emissive) {
+                                            child.material.emissiveIntensity = 1;
+                                        }
+                                    }
+                                });
+
+                                this.scene.add(model);
+                                this.allModels[index] = { model, mixer };
+
+                                console.log(`✅ Model ${index} pre-loaded`);
+                                this.DOM.loadingProgress.textContent = `Loaded ${Object.keys(this.allModels).length}/${CONFIG.models.length} models`;
+                                resolve();
+                            },
+                            undefined,
+                            (error) => {
+                                console.error(`❌ Model ${index} failed:`, error);
+                                // Create fallback geometry
+                                const fallback = this.createFallbackGeometry(index);
+                                this.scene.add(fallback);
+                                this.allModels[index] = { model: fallback, mixer: null };
+                                this.DOM.loadingProgress.textContent = `Loaded ${Object.keys(this.allModels).length}/${CONFIG.models.length} models (${index} fallback)`;
+                                resolve();
+                            }
+                        );
+                    });
+                });
+
+                await Promise.all(loadPromises);
+                console.log('✅ All models pre-loaded');
+            }
+
+            createFallbackGeometry(index) {
+                const geometry = new THREE.BoxGeometry(5, 5, 5);
+                const edges = new THREE.EdgesGeometry(geometry);
+                const material = new THREE.LineBasicMaterial({ color: 0xff00ff });
+                const wireframe = new THREE.LineSegments(edges, material);
+                wireframe.visible = false;
+
+                const group = new THREE.Group();
+                group.add(wireframe);
+
+                console.log(`⚠️ Fallback geometry created for model ${index}`);
+                return group;
+            }
+
+            async checkVRSupport() {
+                try {
+                    const supported = navigator.xr && await navigator.xr.isSessionSupported('immersive-vr');
+                    if (supported) {
+                        this.setupVR();
+                    } else {
+                        this.setupDesktop();
+                    }
+                } catch (e) {
+                    this.setupDesktop();
+                }
+            }
+
+            setupDesktop() {
+                this.vrActive = false;
+                document.body.addEventListener('click', () => this.onInitialClick(), { once: true });
+            }
+
+            setupVR() {
+                this.vrActive = true;
+                this.DOM.instructions.classList.add('hidden');
+
+                const vrButton = VRButton.createButton(this.renderer);
+                vrButton.textContent = 'Enter VR';
+                vrButton.classList.add('glass-panel', 'px-8', 'py-4', 'rounded-xl', 'text-sm', 'tracking-wider', 'uppercase');
+                document.body.appendChild(vrButton);
+
+                const controllerModelFactory = new XRControllerModelFactory();
+                for (let i = 0; i < 2; i++) {
+                    const controller = this.renderer.xr.getController(i);
+                    const grip = this.renderer.xr.getControllerGrip(i);
+                    grip.add(controllerModelFactory.createControllerModel(grip));
+                    this.playerRig.add(controller);
+                    this.playerRig.add(grip);
+                    this.vrControllers.push(controller);
+
+                    // VR Teleportation on trigger
+                    controller.addEventListener('selectstart', () => {
+                        console.log('VR Teleport activated');
+                        // TODO: Implement teleportation raycast
+                    });
+                }
+
+                this.renderer.xr.addEventListener('sessionstart', () => {
+                    this.experienceStarted = true;
+                    this.DOM.backgroundImg.classList.add('hidden');
+                    this.sceneManager.transitionTo(0);
+                });
+
+                this.renderer.xr.addEventListener('sessionend', () => {
+                    window.location.reload();
+                });
+            }
+
+            onInitialClick() {
+                if (this.experienceStarted) return;
+                this.experienceStarted = true;
+
+                // NOW show the HDRI background!
+                if (this.currentHDRI) {
+                    this.scene.background = this.currentHDRI;
+                }
+
+                if (this.audioListener.context.state === 'suspended') {
+                    this.audioListener.context.resume();
+                }
+
+                this.DOM.instructions.classList.add('hidden');
+                this.sceneManager.transitionTo(0);
+                Analytics.trackEvent('Engagement', 'Experience Started');
+            }
+
+            async executeScene(sceneNum) {
+                Object.values(this.allModels).forEach(({ model }) => {
+                    model.visible = false;
+                });
+                this.colliderMeshes = [];
+
+                this.hideAllUI();
+                this.DOM.backgroundImg.classList.add('hidden');
+
+                switch (sceneNum) {
+                    case 0: await this.scene0_PreStart(); break;
+                    case 1: await this.scene1_PostStart(); break;
+                    case 2: await this.scene2_DesignOptions(); break;
+                    case 3: await this.scene3_Orbit(); break;
+                    case 4: await this.scene4_Interior(); break;
+                    case 5: await this.scene5_Walkthrough(); break;
+                    case 6: window.location.reload(); break;
+                }
+
+                console.log(`✅ Scene ${sceneNum} ready`);
+            }
+
+            async scene0_PreStart() {
+                this.DOM.nextButton.textContent = 'Start';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.add('hidden');
+
+                this.showModel(0);
+                this.showModel(4);
+
+                this.setupCameraGSAP({
+                    type: 'orbit',
+                    cameraType: 'orthographic',
+                    pos: { x: 0, y: 20, z: 15 },
+                    lookAt: { x: 0, y: 1, z: 0 },
+                    autoRotate: true,
+                    autoRotateSpeed: 1.0,
+                    enableZoom: false,
+                    enableRotate: false
+                });
+
+                this.updatePanels('html_scene0_left', 'html_scene0_right');
+            }
+
+            async scene1_PostStart() {
+                this.DOM.nextButton.textContent = 'Next';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
+
+                this.showModel(0);
+                this.showModel(4);
+
+                this.setupCameraGSAP({
+                    type: 'orbit',
+                    cameraType: 'orthographic',
+                    pos: { x: 0, y: 20, z: 15 },
+                    lookAt: { x: 0, y: 1, z: 0 },
+                    autoRotate: true,
+                    autoRotateSpeed: 1.0,
+                    enableZoom: true,
+                    enableRotate: true
+                });
+
+                const scene1Config = [
+                    { name: 'Surrounding', id: 'surrounding' },
+                    { name: 'Transportation', id: 'transportation' },
+                    { name: 'Units', id: 'units' }
+                ];
+
+                this.setupToggles(scene1Config);
+
+                // Auto-activate first option (Surrounding)
+                this.handleToggleClick(0, scene1Config);
+            }
+
+            async scene2_DesignOptions() {
+                if (this.allModels[0]) this.allModels[0].model.userData.id = 'm1';
+                if (this.allModels[3]) this.allModels[3].model.userData.id = 'm4';
+                if (this.allModels[2]) this.allModels[2].model.userData.id = 'm3';
+                if (this.allModels[4]) this.allModels[4].model.userData.id = 'm5';
+
+                this.setupCameraGSAP({
+                    type: 'orbit',
+                    cameraType: 'orthographic',
+                    pos: { x: 0, y: 30, z: 15 },
+                    lookAt: { x: 0, y: 4, z: 0 },
+                    autoRotate: true,
+                    enableZoom: true,
+                    enableRotate: true
+                });
+
+                this.setupToggles([
+                    { name: 'Option 1', id: 'view1' },
+                    { name: 'Option 2', id: 'view2' }
+                ]);
+
+                this.handleToggleClick(0);
+            }
+
+            async scene3_Orbit() {
+                this.showModel(2);
+                this.showModel(5);
+
+                this.setupCameraGSAP({
+                    type: 'orbit',
+                    cameraType: 'orthographic',
+                    pos: { x: 15, y: 8, z: -15 },
+                    lookAt: { x: 0, y: 4, z: 0 },
+                    autoRotate: false,
+                    enableZoom: true,
+                    enableRotate: true
+                });
+
+                this.setupToggles(null);
+                this.updatePanels('html_scene3_left', 'html_scene3_right');
+            }
+
+            async scene4_Interior() {
+                this.showModel(6);
+
+                // Update button text
+                this.DOM.nextButton.textContent = 'Next';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
+
+                this.setupToggles([
+                    { name: 'Salon', id: 'cam1' },
+                    { name: 'Kitchen', id: 'cam2' },
+                    { name: 'Bedroom 1', id: 'cam3' },
+                    { name: 'Bedroom 1 WC', id: 'cam4' },
+                    { name: 'Bedroom 2', id: 'cam5' },
+                    { name: 'Bedroom 2 WC', id: 'cam6' }
+                ]);
+
+                // Hotspots removed per user request
+                // this.createHotspots();
+
+                this.handleToggleClick(0);
+            }
+
+            async scene5_Walkthrough() {
+                this.showModel(6);
+
+                if (this.allModels[7]) {
+                    const colliderModel = this.allModels[7].model;
+                    colliderModel.traverse((child) => {
+                        if (child.isMesh) {
+                            this.colliderMeshes.push(child);
+
+                            // Add to physics world
+                            const shape = new CANNON.Box(new CANNON.Vec3(10, 10, 10)); // Simplified
+                            const body = new CANNON.Body({ mass: 0, shape });
+                            this.physicsWorld.addBody(body);
+                        }
+                    });
+                }
+
+                this.setupToggles(null);
+                this.DOM.nextButton.textContent = 'Restart';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
+
+                this.setupCameraGSAP({
+                    type: 'pointerlock',
+                    cameraType: 'perspective',
+                    pos: { x: 1.4, y: 1.6, z: -0.6 }
+                });
+
+                this.updatePanels('html_scene5_left', 'html_scene5_right');
+            }
+
+            showModel(index) {
+                if (this.allModels[index]) {
+                    this.allModels[index].model.visible = true;
+                }
+            }
+
+            setModelVisibility(id, visible) {
+                Object.values(this.allModels).forEach(({ model }) => {
+                    if (model.userData.id === id) {
+                        model.visible = visible;
+                    }
+                });
+            }
+
+            // GSAP Camera Setup (replaces direct position.set)
+            setupCameraGSAP(config) {
+                this.orbitControls.enabled = false;
+                this.orbitControls.autoRotate = false;
+
+                if (this.pointerLockControls.isLocked) {
+                    this.pointerLockControls.unlock();
+                }
+
+                let newCam = config.cameraType === 'orthographic' ? this.orthographicCamera : this.perspectiveCamera;
+                if (config.type === 'pointerlock') newCam = this.perspectiveCamera;
+
+                if (this.camera !== newCam) {
+                    if (this.playerRig.children.includes(this.camera)) {
+                        this.playerRig.remove(this.camera);
+                    }
+                    this.camera = newCam;
+                    this.playerRig.add(this.camera);
+                    this.camera.add(this.audioListener);
+                    this.orbitControls.object = this.camera;
+
+                    this.composer.passes.forEach(pass => {
+                        if (pass.camera) pass.camera = this.camera;
+                    });
+                }
+
+                const pos = config.pos || { x: 0, y: 5, z: 10 };
+                const look = config.lookAt || { x: 0, y: 1, z: 0 };
+
+                if (config.type === 'orbit') {
+                    // Animate camera with GSAP
+                    gsap.to(this.camera.position, {
+                        x: pos.x,
+                        y: pos.y,
+                        z: pos.z,
+                        duration: 2,
+                        ease: 'power2.inOut',
+                        onUpdate: () => {
+                            this.camera.lookAt(look.x, look.y, look.z);
+                        }
+                    });
+
+                    this.orbitControls.target.set(look.x, look.y, look.z);
+                    this.orbitControls.autoRotate = config.autoRotate || false;
+                    this.orbitControls.autoRotateSpeed = config.autoRotateSpeed || 1.0;
+                    this.orbitControls.enablePan = config.enablePan !== undefined ? config.enablePan : false;
+                    this.orbitControls.enableZoom = config.enableZoom !== undefined ? config.enableZoom : true;
+                    this.orbitControls.enableRotate = config.enableRotate !== undefined ? config.enableRotate : true;
+                    this.orbitControls.maxPolarAngle = Math.PI / 2 * 0.98;
+
+                    if (config.cameraType === 'orthographic') {
+                        const aspect = window.innerWidth / window.innerHeight;
+                        const frustum = CONFIG.camera.orthoFrustumSize;
+                        this.camera.left = frustum * aspect / -2;
+                        this.camera.right = frustum * aspect / 2;
+                        this.camera.top = frustum / 2;
+                        this.camera.bottom = frustum / -2;
+                    } else {
+                        this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    }
+                    this.camera.updateProjectionMatrix();
+
+                    this.orbitControls.enabled = true;
+                    this.orbitControls.update();
+
+                } else if (config.type === 'pointerlock') {
+                    this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    this.camera.updateProjectionMatrix();
+
+                    this.pointerLockControls.getObject().position.set(pos.x, pos.y, pos.z);
+                    this.playerVelocity.set(0, 0, 0);
+                    this.playerOnFloor = true;
+
+                    if (!this.vrActive) {
+                        this.pointerLockControls.lock();
+                    }
+                }
+            }
+
+            // Instant Camera Setup (for interior scenes - no wall clipping)
+            setupCameraInstant(config) {
+                this.orbitControls.enabled = false;
+                this.orbitControls.autoRotate = false;
+
+                if (this.pointerLockControls.isLocked) {
+                    this.pointerLockControls.unlock();
+                }
+
+                let newCam = config.cameraType === 'orthographic' ? this.orthographicCamera : this.perspectiveCamera;
+                if (config.type === 'pointerlock') newCam = this.perspectiveCamera;
+
+                if (this.camera !== newCam) {
+                    if (this.playerRig.children.includes(this.camera)) {
+                        this.playerRig.remove(this.camera);
+                    }
+                    this.camera = newCam;
+                    this.playerRig.add(this.camera);
+                    this.camera.add(this.audioListener);
+                    this.orbitControls.object = this.camera;
+
+                    this.composer.passes.forEach(pass => {
+                        if (pass.camera) pass.camera = this.camera;
+                    });
+                }
+
+                const pos = config.pos || { x: 0, y: 5, z: 10 };
+                const look = config.lookAt || { x: 0, y: 1, z: 0 };
+
+                if (config.type === 'orbit') {
+                    // INSTANT camera position (no animation - prevents wall clipping)
+                    this.camera.position.set(pos.x, pos.y, pos.z);
+                    this.camera.lookAt(look.x, look.y, look.z);
+
+                    this.orbitControls.target.set(look.x, look.y, look.z);
+                    this.orbitControls.autoRotate = config.autoRotate || false;
+                    this.orbitControls.autoRotateSpeed = config.autoRotateSpeed || 1.0;
+                    this.orbitControls.enablePan = config.enablePan !== undefined ? config.enablePan : false;
+                    this.orbitControls.enableZoom = config.enableZoom !== undefined ? config.enableZoom : true;
+                    this.orbitControls.enableRotate = config.enableRotate !== undefined ? config.enableRotate : true;
+                    this.orbitControls.maxPolarAngle = Math.PI / 2 * 0.98;
+
+                    if (config.cameraType === 'orthographic') {
+                        const aspect = window.innerWidth / window.innerHeight;
+                        const frustum = CONFIG.camera.orthoFrustumSize;
+                        this.camera.left = frustum * aspect / -2;
+                        this.camera.right = frustum * aspect / 2;
+                        this.camera.top = frustum / 2;
+                        this.camera.bottom = frustum / -2;
+                    } else {
+                        this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    }
+                    this.camera.updateProjectionMatrix();
+
+                    this.orbitControls.enabled = true;
+                    this.orbitControls.update();
+
+                } else if (config.type === 'pointerlock') {
+                    this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    this.camera.updateProjectionMatrix();
+
+                    this.pointerLockControls.getObject().position.set(pos.x, pos.y, pos.z);
+                    this.playerVelocity.set(0, 0, 0);
+                    this.playerOnFloor = true;
+
+                    if (!this.vrActive) {
+                        this.pointerLockControls.lock();
+                    }
+                }
+            }
+
+            setupToggles(config) {
+                if (config) {
+                    this.DOM.modelLabel.classList.remove('hidden');
+                    this.DOM.modelToggleContainer.classList.remove('hidden');
+                    this.DOM.modelToggleContainer.innerHTML = '';
+
+                    config.forEach((item, i) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'glass-panel px-4 py-2 rounded-lg text-xs font-medium tracking-wider uppercase whitespace-nowrap hover:bg-white/20 transition-all duration-300 transform hover:scale-105 carousel-item';
+                        btn.textContent = item.name;
+                        btn.dataset.id = item.id;
+                        btn.setAttribute('aria-label', item.name);
+
+                        if (i === 0) btn.classList.add('bg-white/20');
+
+                        btn.addEventListener('click', () => {
+                            this.handleToggleClick(i, config);
+                            Analytics.trackButtonClick(item.name);
+                        });
+
+                        this.DOM.modelToggleContainer.appendChild(btn);
+                    });
+                } else {
+                    this.DOM.modelLabel.classList.add('hidden');
+                    this.DOM.modelToggleContainer.classList.add('hidden');
+                }
+            }
+
+            handleToggleClick(index, config = null) {
+                const buttons = this.DOM.modelToggleContainer.querySelectorAll('button');
+                buttons.forEach((btn, i) => {
+                    btn.classList.toggle('bg-white/20', i === index);
+                });
+
+                const currentScene = this.sceneManager.getCurrentScene();
+
+                switch (currentScene) {
+                    case 1:
+                        const concepts = ['opt1', 'opt2', 'opt3'];
+                        const hotspotTypes = ['surrounding', 'transportation', 'units'];
+                        this.updatePanels(
+                            `html_scene1_${concepts[index]}_left`,
+                            `html_scene1_${concepts[index]}_right`
+                        );
+                        this.DOM.description.textContent = config[index].name;
+                        this.DOM.description.classList.remove('hidden');
+
+                        // Show hotspots for the selected option
+                        this.showScene1Hotspots(hotspotTypes[index]);
+                        break;
+
+                    case 2:
+                        if (index === 0) {
+                            this.setModelVisibility('m1', true);
+                            this.setModelVisibility('m4', true);
+                            this.setModelVisibility('m3', false);
+                            this.setModelVisibility('m5', false);
+                            this.updatePanels('html_scene2_opt1_left', 'html_scene2_opt1_right');
+                        } else {
+                            this.setModelVisibility('m1', false);
+                            this.setModelVisibility('m4', false);
+                            this.setModelVisibility('m3', true);
+                            this.setModelVisibility('m5', true);
+                            this.updatePanels('html_scene2_opt2_left', 'html_scene2_opt2_right');
+                        }
+                        this.DOM.description.textContent = `Design ${index + 1}`;
+                        this.DOM.description.classList.remove('hidden');
+                        break;
+
+                    case 4:
+                        const cameras = [
+                            { pos: { x: 1, y: 1.6, z: 1.6 }, look: { x: 1, y: 1.6, z: 1.5 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 3.1 }, look: { x: -2.1, y: 1.6, z: 3.2 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 0 }, look: { x: -2.1, y: 1.6, z: -0.1 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 2.1 }, look: { x: -2.1, y: 1.6, z: 2.2 }, fov: 90 },
+                            { pos: { x: 4.4, y: 1.6, z: 0 }, look: { x: 4.5, y: 1.6, z: -0.1 }, fov: 90 },
+                            { pos: { x: 3.9, y: 1.6, z: 3.7 }, look: { x: 4.0, y: 1.6, z: 3.8 }, fov: 90 }
+                        ];
+
+                        const cam = cameras[index];
+                        // Instant camera switch - NO animation (prevent going through walls)
+                        this.setupCameraInstant({
+                            type: 'orbit',
+                            cameraType: 'perspective',
+                            pos: cam.pos,
+                            lookAt: cam.look,
+                            fov: cam.fov,
+                            autoRotate: false,
+                            enableZoom: true,
+                            enableRotate: true
+                        });
+
+                        this.updatePanels(
+                            `html_scene4_cam${index + 1}_left`,
+                            `html_scene4_cam${index + 1}_right`
+                        );
+                        this.DOM.description.textContent = config[index].name;
+                        this.DOM.description.classList.remove('hidden');
+                        break;
+                }
+            }
+
+            updatePanels(leftId, rightId) {
+                const leftContent = document.getElementById(leftId);
+                if (leftContent) {
+                    this.DOM.leftPanel.innerHTML = leftContent.innerHTML;
+                    this.DOM.leftPanel.classList.remove('hidden', '-translate-x-[120%]');
+                    this.DOM.leftPanel.classList.add('translate-x-0');
+                } else {
+                    this.DOM.leftPanel.classList.add('-translate-x-[120%]');
+                    setTimeout(() => this.DOM.leftPanel.classList.add('hidden'), 700);
+                }
+
+                const rightContent = document.getElementById(rightId);
+                if (rightContent) {
+                    this.DOM.rightPanel.innerHTML = rightContent.innerHTML;
+                    this.DOM.rightPanel.classList.remove('hidden', 'translate-x-[120%]');
+                    this.DOM.rightPanel.classList.add('translate-x-0');
+                } else {
+                    this.DOM.rightPanel.classList.add('translate-x-[120%]');
+                    setTimeout(() => this.DOM.rightPanel.classList.add('hidden'), 700);
+                }
+            }
+
+            hideAllUI() {
+                this.DOM.modelLabel.classList.add('hidden');
+                this.DOM.modelToggleContainer.classList.add('hidden');
+                this.DOM.description.classList.add('hidden');
+                this.DOM.leftPanel.classList.add('-translate-x-[120%]');
+                this.DOM.rightPanel.classList.add('translate-x-[120%]');
+                this.DOM.hotspotsContainer.classList.add('hidden');
+                this.DOM.hotspotsContainer.innerHTML = '';
+
+                // Close hotspot popup
+                const popup = document.getElementById('hotspotPopup');
+                if (popup) popup.classList.add('hidden');
+
+                // Clear active hotspots
+                this.activeHotspots = [];
+            }
+
+            showScene1Hotspots(type) {
+                this.DOM.hotspotsContainer.classList.remove('hidden');
+                this.DOM.hotspotsContainer.innerHTML = '';
+                this.activeHotspots = [];
+                this.currentHotspotType = type;
+
+                const hotspots = CONFIG.hotspots[type];
+                if (!hotspots) return;
+
+                // Create hotspots with 3D positioning
+                hotspots.forEach((hotspot, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'hotspot pointer-events-auto';
+                    div.setAttribute('aria-label', hotspot.name);
+                    div.setAttribute('role', 'button');
+                    div.setAttribute('tabindex', '0');
+
+                    div.addEventListener('click', (e) => {
+                        this.showHotspotPopup(hotspot, e.clientX, e.clientY);
+                        Analytics.trackButtonClick(`Hotspot: ${hotspot.name}`);
+                    });
+
+                    this.DOM.hotspotsContainer.appendChild(div);
+
+                    // Store hotspot data with element and 3D position
+                    this.activeHotspots.push({
+                        element: div,
+                        position: new THREE.Vector3(hotspot.pos.x, hotspot.pos.y, hotspot.pos.z),
+                        data: hotspot
+                    });
+                });
+            }
+
+            showHotspotPopup(hotspot, clickX, clickY) {
+                const popup = document.getElementById('hotspotPopup');
+                document.getElementById('hotspotTitle').textContent = hotspot.name;
+                document.getElementById('hotspotDistance').textContent = `Distance: ${hotspot.distance}`;
+                document.getElementById('hotspotInfo').textContent = hotspot.info;
+                document.getElementById('hotspotMapsLink').href = hotspot.mapsLink;
+
+                // Position popup near click location
+                const padding = 20;
+                const popupWidth = 280;
+                const popupHeight = 200;
+
+                let left = clickX + padding;
+                let top = clickY - popupHeight / 2;
+
+                // Keep popup within viewport
+                if (left + popupWidth > window.innerWidth) {
+                    left = clickX - popupWidth - padding;
+                }
+                if (top < padding) {
+                    top = padding;
+                }
+                if (top + popupHeight > window.innerHeight) {
+                    top = window.innerHeight - popupHeight - padding;
+                }
+
+                popup.style.left = `${left}px`;
+                popup.style.top = `${top}px`;
+                popup.classList.remove('hidden');
+
+                // Animate popup entrance
+                gsap.from(popup.querySelector('.glass-panel'), {
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.4,
+                    ease: 'back.out(1.7)'
+                });
+            }
+
+            updateHotspotPositions() {
+                if (this.activeHotspots.length === 0 || this.sceneManager.getCurrentScene() !== 1) return;
+
+                this.activeHotspots.forEach(hotspot => {
+                    const screenPos = hotspot.position.clone().project(this.camera);
+
+                    // Check if hotspot is behind camera
+                    if (screenPos.z > 1) {
+                        hotspot.element.style.display = 'none';
+                        return;
+                    }
+
+                    // Convert to screen coordinates
+                    const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+                    // Check if in viewport
+                    if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
+                        hotspot.element.style.display = 'none';
+                    } else {
+                        hotspot.element.style.display = 'block';
+                        hotspot.element.style.left = `${x}px`;
+                        hotspot.element.style.top = `${y}px`;
+                        hotspot.element.style.transform = 'translate(-50%, -50%)';
+
+                        // Scale based on distance (optional)
+                        const distance = this.camera.position.distanceTo(hotspot.position);
+                        const scale = Math.max(0.5, Math.min(1.5, 20 / distance));
+                        hotspot.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                    }
+                });
+            }
+
+            createHotspots() {
+                // Example hotspots for Scene 4
+                this.DOM.hotspotsContainer.classList.remove('hidden');
+                this.DOM.hotspotsContainer.innerHTML = '';
+
+                const hotspots = [
+                    { x: '30%', y: '50%', title: 'Kitchen Counter', material: 'Italian Carrara Marble' },
+                    { x: '70%', y: '60%', title: 'Living Room Sofa', material: 'Premium Italian Leather' }
+                ];
+
+                hotspots.forEach((spot, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'hotspot';
+                    div.style.left = spot.x;
+                    div.style.top = spot.y;
+                    div.setAttribute('aria-label', spot.title);
+                    div.setAttribute('role', 'button');
+                    div.setAttribute('tabindex', '0');
+
+                    div.addEventListener('click', () => {
+                        this.showHotspotInfo(spot);
+                        Analytics.trackButtonClick(`Hotspot: ${spot.title}`);
+                    });
+
+                    this.DOM.hotspotsContainer.appendChild(div);
+                });
+            }
+
+            showHotspotInfo(spot) {
+                // Create modal with hotspot info
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="glass-panel relative rounded-2xl p-8 max-w-md mx-4">
+                        <h3 class="text-2xl font-light tracking-wider uppercase mb-4">${spot.title}</h3>
+                        <p class="text-white/80 mb-6">Material: ${spot.material}</p>
+                        <button class="glass-panel px-6 py-2 rounded-lg text-sm tracking-wider uppercase hover:bg-white/20 transition-all" onclick="this.closest('.fixed').remove()">
+                            Close
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                gsap.from(modal.firstElementChild, {
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: 'back.out(1.7)'
+                });
+            }
+
+            setupConfigurator() {
+                this.DOM.configuratorBtn.addEventListener('click', () => {
+                    const isOpen = !this.DOM.configuratorPanel.classList.contains('translate-x-[120%]');
+                    this.DOM.configuratorPanel.classList.toggle('hidden', isOpen);
+                    this.DOM.configuratorPanel.classList.toggle('translate-x-[120%]', isOpen);
+                    this.DOM.configuratorPanel.classList.toggle('translate-x-0', !isOpen);
+                    Analytics.trackButtonClick('Configurator Toggle');
+                });
+
+                this.DOM.sunColorPicker.addEventListener('input', (e) => {
+                    const color = new THREE.Color(e.target.value);
+                    this.sunLight.color = color;
+                });
+
+                this.DOM.lightIntensity.addEventListener('input', (e) => {
+                    this.sunLight.intensity = parseFloat(e.target.value);
+                    this.DOM.lightIntensityValue.textContent = e.target.value;
+                });
+
+                this.DOM.envIntensity.addEventListener('input', (e) => {
+                    const intensity = parseFloat(e.target.value);
+                    this.DOM.envIntensityValue.textContent = e.target.value;
+
+                    // Update all materials' environment map intensity
+                    this.scene.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(mat => {
+                                    if (mat.envMap !== null) {
+                                        mat.envMapIntensity = intensity;
+                                    }
+                                });
+                            } else {
+                                if (child.material.envMap !== null) {
+                                    child.material.envMapIntensity = intensity;
+                                }
+                            }
+                        }
+                    });
+                });
+
+                this.DOM.resetConfig.addEventListener('click', () => {
+                    this.DOM.sunColorPicker.value = '#fff9f0';
+                    this.DOM.lightIntensity.value = '2.8';
+                    this.DOM.envIntensity.value = '0.6';
+                    this.sunLight.color = new THREE.Color(CONFIG.lighting.sunColor);
+                    this.sunLight.intensity = CONFIG.lighting.sunIntensity;
+
+                    // Reset all materials' environment map intensity
+                    this.scene.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(mat => {
+                                    if (mat.envMap !== null) {
+                                        mat.envMapIntensity = CONFIG.lighting.envIntensity;
+                                    }
+                                });
+                            } else {
+                                if (child.material.envMap !== null) {
+                                    child.material.envMapIntensity = CONFIG.lighting.envIntensity;
+                                }
+                            }
+                        }
+                    });
+
+                    this.DOM.lightIntensityValue.textContent = '2.8';
+                    this.DOM.envIntensityValue.textContent = '0.6';
+                    Analytics.trackButtonClick('Reset Configurator');
+                });
+            }
+
+            setupTooltips() {
+                const tooltipElements = document.querySelectorAll('[title]');
+                tooltipElements.forEach(el => {
+                    el.addEventListener('mouseenter', (e) => {
+                        const title = e.target.getAttribute('title');
+                        if (title) {
+                            this.DOM.tooltip.textContent = title;
+                            this.DOM.tooltip.classList.remove('opacity-0');
+                            this.DOM.tooltip.classList.add('opacity-100');
+                        }
+                    });
+
+                    el.addEventListener('mousemove', (e) => {
+                        gsap.to(this.DOM.tooltip, {
+                            x: e.clientX + 15,
+                            y: e.clientY + 15,
+                            duration: 0.2,
+                            ease: 'power2.out'
+                        });
+                    });
+
+                    el.addEventListener('mouseleave', () => {
+                        this.DOM.tooltip.classList.add('opacity-0');
+                        this.DOM.tooltip.classList.remove('opacity-100');
+                    });
+                });
+            }
+
+            setupEventListeners() {
+                this.DOM.nextButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // If button says "Restart", reload the page
+                    if (this.DOM.nextButton.textContent === 'Restart') {
+                        window.location.reload();
+                        Analytics.trackButtonClick('Restart');
+                    } else {
+                        this.sceneManager.transitionTo(this.sceneManager.getCurrentScene() + 1);
+                        Analytics.trackButtonClick('Next Button');
+                    }
+                });
+
+                this.DOM.previousButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const prevScene = this.sceneManager.getCurrentScene() - 1;
+                    if (prevScene >= 0) {
+                        this.sceneManager.transitionTo(prevScene);
+                    }
+                    Analytics.trackButtonClick('Previous Button');
+                });
+
+                this.DOM.dayNightToggle.addEventListener('click', async () => {
+                    this.isDayMode = !this.isDayMode;
+                    await this.loadHDRI(this.isDayMode ? 'day' : 'night');
+                    Analytics.trackButtonClick('Day/Night Toggle');
+                });
+
+                this.DOM.screenshotBtn.addEventListener('click', () => {
+                    this.takeScreenshot();
+                    Analytics.trackButtonClick('Screenshot');
+                });
+
+                // Hotspot popup close handler
+                const closePopupBtn = document.getElementById('closeHotspotPopup');
+                const hotspotPopup = document.getElementById('hotspotPopup');
+
+                closePopupBtn.addEventListener('click', () => {
+                    hotspotPopup.classList.add('hidden');
+                });
+
+                // Close popup when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!hotspotPopup.classList.contains('hidden') &&
+                        !hotspotPopup.contains(e.target) &&
+                        !e.target.classList.contains('hotspot')) {
+                        hotspotPopup.classList.add('hidden');
+                    }
+                });
+
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    if (this.vrActive || !this.pointerLockControls.isLocked) return;
+
+                    switch (e.code) {
+                        case 'KeyW': this.keys.forward = true; break;
+                        case 'KeyS': this.keys.backward = true; break;
+                        case 'KeyA': this.keys.left = true; break;
+                        case 'KeyD': this.keys.right = true; break;
+                        case 'Space': if (this.playerOnFloor) this.keys.jump = true; break;
+                        case 'ShiftLeft':
+                            this.keys.sprint = true;
+                            this.currentMoveSpeed = CONFIG.physics.baseMoveSpeed * CONFIG.physics.sprintMultiplier;
+                            break;
+                        case 'KeyF':
+                            if (!document.fullscreenElement) {
+                                document.documentElement.requestFullscreen();
+                            } else {
+                                document.exitFullscreen();
+                            }
+                            break;
+                        case 'Escape':
+                            // Close hotspot popup if open
+                            const popup = document.getElementById('hotspotPopup');
+                            if (!popup.classList.contains('hidden')) {
+                                popup.classList.add('hidden');
+                            }
+                            // In Scene 5, unlock pointer and go back
+                            else if (this.sceneManager.getCurrentScene() === 5 && this.pointerLockControls.isLocked) {
+                                this.pointerLockControls.unlock();
+                                this.sceneManager.transitionTo(4); // Go back to Scene 4
+                            }
+                            break;
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    if (this.vrActive || !this.pointerLockControls.isLocked) return;
+
+                    switch (e.code) {
+                        case 'KeyW': this.keys.forward = false; break;
+                        case 'KeyS': this.keys.backward = false; break;
+                        case 'KeyA': this.keys.left = false; break;
+                        case 'KeyD': this.keys.right = false; break;
+                        case 'Space': this.keys.jump = false; break;
+                        case 'ShiftLeft':
+                            this.keys.sprint = false;
+                            this.currentMoveSpeed = CONFIG.physics.baseMoveSpeed;
+                            break;
+                    }
+                });
+
+                window.addEventListener('resize', () => {
+                    const aspect = window.innerWidth / window.innerHeight;
+
+                    this.perspectiveCamera.aspect = aspect;
+                    this.perspectiveCamera.updateProjectionMatrix();
+
+                    const frustum = CONFIG.camera.orthoFrustumSize;
+                    this.orthographicCamera.left = frustum * aspect / -2;
+                    this.orthographicCamera.right = frustum * aspect / 2;
+                    this.orthographicCamera.top = frustum / 2;
+                    this.orthographicCamera.bottom = frustum / -2;
+                    this.orthographicCamera.updateProjectionMatrix();
+
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.composer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }
+
+            takeScreenshot() {
+                // Hide UI
+                document.getElementById('mainUI').classList.add('hidden');
+
+                // Render
+                this.renderer.render(this.scene, this.camera);
+
+                // Capture
+                this.renderer.domElement.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `c2w2-screenshot-${Date.now()}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    // Show UI again
+                    document.getElementById('mainUI').classList.remove('hidden');
+                });
+            }
+
+            updatePlayer(delta) {
+                if (!this.pointerLockControls.isLocked) return;
+
+                // Update physics
+                this.physicsWorld.step(1 / 60, delta, 3);
+
+                const playerPos = this.pointerLockControls.getObject().position;
+
+                this.raycaster.set(playerPos, new THREE.Vector3(0, -1, 0));
+                const floorHits = this.raycaster.intersectObjects(this.colliderMeshes);
+                const onFloor = floorHits.length > 0 && floorHits[0].distance < CONFIG.physics.playerHeight + 0.1;
+
+                if (onFloor) {
+                    this.playerVelocity.y = Math.max(0, this.playerVelocity.y);
+                    if (this.keys.jump) {
+                        this.playerVelocity.y = CONFIG.physics.jumpVelocity;
+                        this.keys.jump = false;
+                    }
+                    const floorDist = floorHits[0].distance;
+                    if (floorDist < CONFIG.physics.playerHeight) {
+                        playerPos.y += (CONFIG.physics.playerHeight - floorDist);
+                    }
+                } else {
+                    this.playerVelocity.y += CONFIG.physics.gravity * delta;
+                }
+
+                playerPos.y += this.playerVelocity.y * delta;
+
+                this.playerVelocity.x -= this.playerVelocity.x * 10.0 * delta;
+                this.playerVelocity.z -= this.playerVelocity.z * 10.0 * delta;
+
+                const direction = new THREE.Vector3();
+                direction.z = Number(this.keys.forward) - Number(this.keys.backward);
+                direction.x = Number(this.keys.right) - Number(this.keys.left);
+                direction.normalize();
+
+                if (this.keys.forward || this.keys.backward) this.playerVelocity.z -= direction.z * this.currentMoveSpeed * delta;
+                if (this.keys.left || this.keys.right) this.playerVelocity.x -= direction.x * this.currentMoveSpeed * delta;
+
+                this.pointerLockControls.moveRight(-this.playerVelocity.x * delta);
+                this.pointerLockControls.moveForward(-this.playerVelocity.z * delta);
+
+                // Wall collision
+                const checkPos = new THREE.Vector3(playerPos.x, playerPos.y - CONFIG.physics.playerHeight / 2, playerPos.z);
+                const directions = [
+                    new THREE.Vector3(1, 0, 0),
+                    new THREE.Vector3(-1, 0, 0),
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(0, 0, -1)
+                ];
+
+                directions.forEach(dir => {
+                    this.raycaster.set(checkPos, dir);
+                    const wallHits = this.raycaster.intersectObjects(this.colliderMeshes);
+                    if (wallHits.length > 0 && wallHits[0].distance < CONFIG.physics.playerRadius) {
+                        const penetration = CONFIG.physics.playerRadius - wallHits[0].distance;
+                        playerPos.x -= dir.x * (penetration + 0.01);
+                        playerPos.z -= dir.z * (penetration + 0.01);
+                        if (dir.x !== 0) this.playerVelocity.x = 0;
+                        if (dir.z !== 0) this.playerVelocity.z = 0;
+                    }
+                });
+
+                this.raycaster.set(playerPos, new THREE.Vector3(0, -1, 0));
+                const finalFloor = this.raycaster.intersectObjects(this.colliderMeshes);
+                this.playerOnFloor = finalFloor.length > 0 && finalFloor[0].distance < CONFIG.physics.playerHeight + 0.1;
+            }
+
+            animate() {
+                const delta = this.clock.getDelta();
+
+                // FPS Counter
+                this.frames++;
+                const now = performance.now();
+                if (now >= this.lastTime + 1000) {
+                    this.fps = Math.round((this.frames * 1000) / (now - this.lastTime));
+                    this.DOM.fpsCounter.textContent = this.fps;
+                    this.qualityManager.updateFPS(this.fps);
+                    this.frames = 0;
+                    this.lastTime = now;
+                }
+
+                if (this.orbitControls.enabled) {
+                    this.orbitControls.update(delta);
+                }
+
+                if (this.sceneManager.getCurrentScene() === 5 && !this.vrActive) {
+                    this.updatePlayer(delta);
+                }
+
+                // Update 3D hotspot positions every frame
+                this.updateHotspotPositions();
+
+                Object.values(this.allModels).forEach(({ mixer }) => {
+                    if (mixer) mixer.update(delta);
+                });
+
+                if (this.renderer.xr.isPresenting) {
+                    this.renderer.render(this.scene, this.camera);
+                } else {
+                    this.composer.render();
+                }
+            }
+        }
+
+        // ============================================
+        // START APPLICATION
+        // ============================================
+        const app = new VirtualRunwayApp();
+        app.init().catch(error => {
+            console.error('Init failed:', error);
+            document.getElementById('loading').innerHTML = '<div class="text-white text-lg">Error loading experience</div>';
+        });
+    </script>
+</body>
+</html>
