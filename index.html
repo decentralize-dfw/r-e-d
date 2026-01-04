@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="C2W2 Virtual Runway - Premium Commercial-Ready 3D Architectural Viewer with WebXR Support">
+    <meta name="keywords" content="virtual reality, architecture, 3d viewer, webxr, three.js">
+    <meta name="author" content="Digital Forgery Workshop">
+    <title>C2W2 VIRTUAL RUNWAY BY DFW - Premium Edition</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <!-- Preconnect to external domains for better performance -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://raw.githubusercontent.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">Loading Experience...</div>
+    
+    <!-- Background Image -->
+    <img id="backgroundImg" src="https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/VEADEMO1.jpg" alt="Loading Background">
+    
+    <!-- Scene Loading Indicator -->
+    <div id="sceneLoadingIndicator">Loading Scene Models...</div>
+    
+    <!-- Instructions Overlay -->
+    <div id="instructions" class="panel">
+        <h1>Click to Enter</h1>
+    </div>
+    
+    <!-- State Overlays -->
+    <div id="initiating">Initializing...</div>
+    <div id="ended">Experience Ended</div>
+    
+    <!-- Start Button -->
+    <button id="startButton" class="btn" style="position: absolute; left: 10px; bottom: 10px; display: none;">Start</button>
+    
+    <!-- Model Toggle Buttons -->
+    <p id="modelLabel" style="position: absolute; left: 10px; top: 10px; color: white; font-size: 12px; font-weight: 500; margin: 0; font-family: Helvetica, Arial, sans-serif; display: none;">Model</p>
+    <button id="modelToggleBtn1" class="btn btn-small" style="position: absolute; left: 60px; top: 9px; display: none;">Model 1</button>
+    <button id="modelToggleBtn2" class="btn btn-small" style="position: absolute; left: 120px; top: 9px; display: none;">Model 2</button>
+    <button id="modelToggleBtn3" class="btn btn-small" style="position: absolute; left: 180px; top: 9px; display: none;">Model 3</button>
+    <button id="modelToggleBtn4" class="btn btn-small" style="position: absolute; left: 240px; top: 9px; display: none;">Model 4</button>
+    <button id="modelToggleBtn5" class="btn btn-small" style="position: absolute; left: 300px; top: 9px; display: none;">Model 5</button>
+    <button id="modelToggleBtn6" class="btn btn-small" style="position: absolute; left: 360px; top: 9px; display: none;">Model 6</button>
+    
+    <!-- Info Buttons -->
+    <button id="fullscreenButton" class="btn btn-info" style="position: absolute; right: 400px; top: 10px;">Full Screen</button>
+    <button id="projectInfoButton" class="btn btn-info" style="position: absolute; right: 300px; top: 10px;">Project Info</button>
+    <button id="studioInfoButton" class="btn btn-info" style="position: absolute; right: 200px; top: 10px;">Studio Info</button>
+    <button id="creatorsNoteButton" class="btn btn-info" style="position: absolute; right: 80px; top: 10px;">Creators Note</button>
+    <button id="hintButton" class="btn btn-info" style="position: absolute; right: 10px; top: 10px;">Hint</button>
+    
+    <!-- Description Panel -->
+    <div id="description"></div>
+    <div id="hoverText">Click to open link</div>
+    
+    <!-- Side HTML Panels -->
+    <div id="leftHtmlPanel"></div>
+    <div id="rightHtmlPanel"></div>
+    
+    <!-- HTML Content Store (Hidden) -->
+    <div id="htmlContentStore" style="display: none;">
+        <!-- Scene 0 -->
+        <div id="html_scene0_left">
+            <h3>Scene 0: Pre-Start</h3>
+            <p>Left panel for auto-rotate scene.</p>
+        </div>
+        <div id="html_scene0_right">
+            <h3>Scene 0: Pre-Start</h3>
+            <p>Right panel for auto-rotate scene.</p>
+        </div>
+        
+        <!-- Scene 1 -->
+        <div id="html_scene1_opt1_left">
+            <h3>Surrounding (L)</h3>
+            <p>Left panel details for 'Surrounding'.</p>
+        </div>
+        <div id="html_scene1_opt1_right">
+            <h3>Surrounding (R)</h3>
+            <p>Right panel details for 'Surrounding'.</p>
+        </div>
+        <div id="html_scene1_opt2_left">
+            <h3>Transportation</h3>
+            <p>Details about the 'Transportation' concept.</p>
+        </div>
+        <div id="html_scene1_opt2_right">
+            <h3>Transportation (R)</h3>
+            <p>Right panel details for 'Transportation'.</p>
+        </div>
+        <div id="html_scene1_opt3_left">
+            <h3>Units</h3>
+            <p>Details about the 'Units' concept.</p>
+        </div>
+        <div id="html_scene1_opt3_right">
+            <h3>Units (R)</h3>
+            <p>Right panel details for 'Units'.</p>
+        </div>
+        
+        <!-- Scene 2 -->
+        <div id="html_scene2_opt1_left">
+            <h3>Option 1 (M1+M4)</h3>
+            <p>Details for model combination 1.</p>
+        </div>
+        <div id="html_scene2_opt1_right">
+            <h3>Option 1 (R)</h3>
+            <p>Right panel details for model combination 1.</p>
+        </div>
+        <div id="html_scene2_opt2_left">
+            <h3>Option 2 (M3+M5)</h3>
+            <p>Details for model combination 2.</p>
+        </div>
+        <div id="html_scene2_opt2_right">
+            <h3>Option 2 (R)</h3>
+            <p>Right panel details for model combination 2.</p>
+        </div>
+        
+        <!-- Scene 3 -->
+        <div id="html_scene3_left">
+            <h3>Scene 3: Orbit (M2+M6)</h3>
+            <p>Left panel for orbit scene.</p>
+        </div>
+        <div id="html_scene3_right">
+            <h3>Scene 3: Orbit (R)</h3>
+            <p>Right panel for orbit scene.</p>
+        </div>
+        
+        <!-- Scene 4 -->
+        <div id="html_scene4_cam1_left">
+            <h3>Salon</h3>
+            <p>Left panel for Salon view.</p>
+        </div>
+        <div id="html_scene4_cam1_right">
+            <h3>Salon (R)</h3>
+            <p>Right panel for Salon view.</p>
+        </div>
+        <div id="html_scene4_cam2_left">
+            <h3>Bathroom</h3>
+            <p>Left panel for Bathroom view.</p>
+        </div>
+        <div id="html_scene4_cam2_right">
+            <h3>Bathroom (R)</h3>
+            <p>Right panel for Bathroom view.</p>
+        </div>
+        <div id="html_scene4_cam3_left">
+            <h3>Bedroom 1</h3>
+            <p>Left panel for Bedroom 1 view.</p>
+        </div>
+        <div id="html_scene4_cam3_right">
+            <h3>Bedroom 1 (R)</h3>
+            <p>Right panel for Bedroom 1 view.</p>
+        </div>
+        <div id="html_scene4_cam4_left">
+            <h3>Bedroom 1 WC</h3>
+            <p>Left panel for Bedroom 1 WC view.</p>
+        </div>
+        <div id="html_scene4_cam4_right">
+            <h3>Bedroom 1 WC (R)</h3>
+            <p>Right panel for Bedroom 1 WC view.</p>
+        </div>
+        <div id="html_scene4_cam5_left">
+            <h3>Bedroom 2</h3>
+            <p>Left panel for Bedroom 2 view.</p>
+        </div>
+        <div id="html_scene4_cam5_right">
+            <h3>Bedroom 2 (R)</h3>
+            <p>Right panel for Bedroom 2 view.</p>
+        </div>
+        <div id="html_scene4_cam6_left">
+            <h3>Bedroom 2 WC</h3>
+            <p>Left panel for Bedroom 2 WC view.</p>
+        </div>
+        <div id="html_scene4_cam6_right">
+            <h3>Bedroom 2 WC (R)</h3>
+            <p>Right panel for Bedroom 2 WC view.</p>
+        </div>
+        
+        <!-- Scene 5 -->
+        <div id="html_scene5_left">
+            <h3>Scene 5: Walk-Thru</h3>
+            <p>Use W, A, S, D to move. Shift to sprint. Space to jump.</p>
+        </div>
+        <div id="html_scene5_right">
+            <h3>Scene 5: Walk-Thru</h3>
+            <p>Explore the interior space freely.</p>
+        </div>
+    </div>
+    
+    <!-- Info Panels -->
+    <div id="projectInfoPanel" class="panel">
+        <button id="closeButton">X</button>
+        <p><strong>Concept Summary:</strong><br><br>
+            Humanity evolves from touch to clicks...
+        </p>
+    </div>
+    
+    <div id="studioInfoPanel" class="panel">
+        <button id="studioCloseButton">X</button>
+        <i><strong>Digital Forgery Workshop</strong></i><br><br>
+        <p><strong>CREATIVE DESIGN STUDIO...</strong><br><br>
+            Digital Forgery Workshop is a design practice...
+        </p>
+    </div>
+    
+    <div id="hintPanel" class="panel">
+        <button id="hintCloseButton">X</button>
+        <p><strong>Hints</strong><br><br><br>
+        <p><strong>Navigation: Use W, A, S, D to move around... (only in Walk-thru mode).</strong><br>Click F for fullscreen.<br><br><br>
+        <p><strong>Links</strong><br>
+            <a href="https://manifold.xyz/@dfw/contract/166699248/1" target="_blank">Manifold</a> → Minted Experience<br>
+        </p>
+    </div>
+    
+    <div id="creatorsNotePanel" class="panel">
+        <button id="creatorsCloseButton">X</button>
+        <p><strong>C2W2 Virtual Runway, 2025</strong><br><br>
+            For 60+ VRM avatars...<br><br>
+            Redefining Digital Art...</p>
+        <i><a href="https://youtu.be/nyEjJ9KvnQc" target="_blank">Listen it here.</a></i>
+    </div>
+    
+    <!-- Main Application Script -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
