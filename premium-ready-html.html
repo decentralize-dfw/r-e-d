@@ -1,30 +1,77 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Begin SPA Transformation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium SPA Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load GSAP via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <style>
+        body {
+            background: #f9fafb;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body class="font-sans">
-    <div id="app" class="container mx-auto">
-        <nav class="bg-blue-500 text-white p-4 flex justify-between">
-            <h1 class="text-xl">SPA Transformation</h1>
-            <ul class="flex space-x-4">
-                <li><a href="#" class="hover:text-gray-200">Home</a></li>
-                <li><a href="#" class="hover:text-gray-200">About</a></li>
-                <li><a href="#" class="hover:text-gray-200">Contact</a></li>
-            </ul>
-        </nav>
-        <main class="mt-8">
-            <section class="hero bg-gray-200 p-8 rounded-lg">
-                <h2 class="text-2xl font-bold">Welcome to the SPA Transformation!</h2>
-                <p class="mt-4">We are leveraging Tailwind CSS for styling, GSAP for animations, and modular components to create a dynamic single-page application.</p>
-            </section>
+<body>
+    <div id="app" class="flex flex-col h-screen">
+        <header class="p-4 bg-blue-500 text-white shadow-md">
+            <h1 class="text-xl">Premium Single Page Application</h1>
+        </header>
+        <main class="flex-1 flex items-center justify-center">
+            <!-- Three.js canvas -->
+            <canvas id="threeCanvas" class="border border-gray-300"></canvas>
         </main>
+        <footer class="p-4 bg-gray-900 text-gray-400">
+            <p>© 2026 Decentralized DFW. All rights reserved.</p>
+        </footer>
     </div>
+
     <script>
-        // Example GSAP Animation
-        gsap.to(".hero", { duration: 1, x: 100, ease: "power2.out" });
+        // JavaScript class-based modular architecture
+        class PremiumSPA {
+            constructor() {
+                this.initializeThreeJS();
+                this.animateEntrance();
+            }
+
+            initializeThreeJS() {
+                const canvas = document.getElementById('threeCanvas');
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ canvas });
+
+                this.renderer.setSize(window.innerWidth, window.innerHeight * 0.75); // Adjust height
+                this.camera.position.z = 5;
+
+                const geometry = new THREE.BoxGeometry();
+                const material = new THREE.MeshBasicMaterial({ color: 0x0077b6 });
+                this.cube = new THREE.Mesh(geometry, material);
+                this.scene.add(this.cube);
+
+                this.animate();
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.cube.rotation.x += 0.01;
+                this.cube.rotation.y += 0.01;
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            animateEntrance() {
+                gsap.from("#app header", { opacity: 0, y: -50, duration: 1 });
+                gsap.from("#app main", { opacity: 0, scale: 0.8, duration: 1, delay: 0.5 });
+                gsap.from("#app footer", { opacity: 0, y: 50, duration: 1, delay: 1 });
+            }
+        }
+
+        // Initialize Premium SPA features
+        document.addEventListener("DOMContentLoaded", () => {
+            new PremiumSPA();
+        });
     </script>
 </body>
 </html>
