@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>Begin SPA Transformation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load GSAP via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="font-sans">
+    <div id="app" class="container mx-auto">
+        <nav class="bg-blue-500 text-white p-4 flex justify-between">
+            <h1 class="text-xl">SPA Transformation</h1>
+            <ul class="flex space-x-4">
+                <li><a href="#" class="hover:text-gray-200">Home</a></li>
+                <li><a href="#" class="hover:text-gray-200">About</a></li>
+                <li><a href="#" class="hover:text-gray-200">Contact</a></li>
+            </ul>
+        </nav>
+        <main class="mt-8">
+            <section class="hero bg-gray-200 p-8 rounded-lg">
+                <h2 class="text-2xl font-bold">Welcome to the SPA Transformation!</h2>
+                <p class="mt-4">We are leveraging Tailwind CSS for styling, GSAP for animations, and modular components to create a dynamic single-page application.</p>
+            </section>
+        </main>
+    </div>
+    <script>
+        // Example GSAP Animation
+        gsap.to(".hero", { duration: 1, x: 100, ease: "power2.out" });
+    </script>
+</body>
+</html>
