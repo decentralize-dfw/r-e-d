@@ -869,7 +869,11 @@
                         hdriUrl,
                         (texture) => {
                             texture.mapping = THREE.EquirectangularReflectionMapping;
-                            this.scene.background = texture;
+
+                            // DON'T show HDRI until experience starts!
+                            if (this.experienceStarted) {
+                                this.scene.background = texture;
+                            }
 
                             if (this.currentHDRI) {
                                 this.currentHDRI.dispose();
@@ -1014,6 +1018,11 @@
             onInitialClick() {
                 if (this.experienceStarted) return;
                 this.experienceStarted = true;
+
+                // NOW show the HDRI background!
+                if (this.currentHDRI) {
+                    this.scene.background = this.currentHDRI;
+                }
 
                 if (this.audioListener.context.state === 'suspended') {
                     this.audioListener.context.resume();
