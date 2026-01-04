@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Riverside Apartments - Premium ArchViz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .progress-container {
+            width: 400px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 16px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 2px;
+        }
+
+        .ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ui-layer > * {
+            pointer-events: auto;
+        }
+
+        /* Hero Screen */
+        #hero-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #hero-screen.visible {
+            opacity: 1;
+        }
+
+        #hero-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-size: 72px;
+            font-weight: 200;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.8);
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 80px;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            padding: 20px 60px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .btn-start:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+        }
+
+        /* Stats Panel */
+        #stats-panel {
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-450px);
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #stats-panel.visible {
+            transform: translateY(-50%) translateX(0);
+            opacity: 1;
+        }
+
+        .stat-box {
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 28px 36px;
+            margin-bottom: 16px;
+            border-left: 2px solid rgba(255,255,255,0.15);
+            min-width: 340px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(15, 15, 20, 0.85);
+            border-left-color: rgba(255,255,255,0.4);
+            transform: translateX(8px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 200;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Panel */
+        #filter-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 360px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 36px;
+            transform: translateX(-450px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        #filter-panel.visible {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .filter-title {
+            font-size: 22px;
+            font-weight: 300;
+            margin-bottom: 32px;
+            letter-spacing: 2px;
+        }
+
+        .filter-group {
+            margin-bottom: 32px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .room-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .room-btn {
+            padding: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        .room-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .room-btn.active {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.4);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            padding-left: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 14px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: rgba(255,255,255,0.8);
+        }
+
+        .checkbox-item label {
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        /* Navigation */
+        #nav-controls {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            display: flex;
+            gap: 16px;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        #nav-controls.visible {
+            opacity: 1;
+        }
+
+        .nav-btn {
+            padding: 18px 40px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 11px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Apartment Tooltip */
+        #apt-tooltip {
+            position: absolute;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 24px;
+            border: 1px solid rgba(255,255,255,0.15);
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
+        #apt-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* Floor Plan Panel */
+        #floorplan-panel {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(110%);
+            width: 700px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(30px);
+            padding: 48px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #floorplan-panel.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .floorplan-title {
+            font-size: 26px;
+            font-weight: 300;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .floorplan-info {
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            margin-bottom: 32px;
+            letter-spacing: 1px;
+        }
+
+        .floorplan-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .room-link {
+            padding: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .room-link:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .floorplan-actions {
+            display: flex;
+            gap: 14px;
+        }
+
+        /* Amenities Menu */
+        #amenities-menu {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%) translateX(450px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            width: 340px;
+        }
+
+        #amenities-menu.visible {
+            transform: translateY(-50%) translateX(0);
+            opacity: 1;
+        }
+
+        .amenity-item {
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 24px 28px;
+            margin-bottom: 14px;
+            border-right: 2px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: all 0.35s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .amenity-item:hover {
+            background: rgba(15, 15, 20, 0.85);
+            border-right-color: rgba(255,255,255,0.5);
+            transform: translateX(-8px);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.3);
+        }
+
+        .amenity-number {
+            font-size: 28px;
+            font-weight: 200;
+            color: rgba(255,255,255,0.3);
+            min-width: 40px;
+        }
+
+        .amenity-name {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* Scene Title */
+        #scene-title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            font-weight: 300;
+        }
+
+        #scene-title.visible {
+            opacity: 1;
+        }
+
+        /* Error Message */
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(150, 30, 30, 0.9);
+            padding: 30px 40px;
+            border: 1px solid rgba(255,100,100,0.5);
+            max-width: 500px;
+            text-align: center;
+            display: none;
+            z-index: 2000;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-title">Loading Experience</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Initializing...</div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Layer -->
+    <div class="ui-layer">
+        <!-- Hero Screen -->
+        <div id="hero-screen">
+            <div class="hero-title">RIVERSIDE LIVING</div>
+            <div class="hero-subtitle">Premium Waterfront Residences</div>
+            <button class="btn-start" onclick="startExperience()">Explore Now</button>
+        </div>
+
+        <!-- Scene Title -->
+        <div id="scene-title"></div>
+
+        <!-- Stats Panel -->
+        <div id="stats-panel">
+            <div class="stat-box">
+                <div class="stat-value">5 Minutes</div>
+                <div class="stat-label">Metro Connection</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">17 Minutes</div>
+                <div class="stat-label">Shopping District</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">10 Minutes</div>
+                <div class="stat-label">City Center</div>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div id="filter-panel">
+            <div class="filter-title">Configure Your Search</div>
+
+            <div class="filter-group">
+                <label class="filter-label">Bedrooms</label>
+                <div class="room-buttons">
+                    <button class="room-btn" data-rooms="1">1</button>
+                    <button class="room-btn active" data-rooms="2">2</button>
+                    <button class="room-btn" data-rooms="3">3</button>
+                    <button class="room-btn" data-rooms="4">4+</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Premium Features</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="terrace">
+                        <label for="terrace">Private Terrace</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="whitebox">
+                        <label for="whitebox">Designer Finish</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="bathrooms">
+                        <label for="bathrooms">Dual Bathrooms</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="view">
+                        <label for="view">River View</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Apartment Tooltip -->
+        <div id="apt-tooltip"></div>
+
+        <!-- Floor Plan Panel -->
+        <div id="floorplan-panel">
+            <div class="floorplan-title">Residence #345</div>
+            <div class="floorplan-info">2 Bedrooms • 78m² • Floor 7 • River Facing • Available</div>
+            <div class="floorplan-grid">
+                <div class="room-link" onclick="goToRoom('living')">Living Room</div>
+                <div class="room-link" onclick="goToRoom('master')">Master Suite</div>
+                <div class="room-link" onclick="goToRoom('bedroom')">Bedroom</div>
+                <div class="room-link" onclick="goToRoom('kitchen')">Kitchen</div>
+                <div class="room-link" onclick="goToRoom('bathroom')">Bathroom</div>
+                <div class="room-link" onclick="goToRoom('balcony')">Terrace</div>
+            </div>
+            <div class="floorplan-actions">
+                <button class="nav-btn" style="flex: 1;">Download Brochure</button>
+                <button class="nav-btn" style="flex: 1;" onclick="startWalkthrough()">Virtual Tour</button>
+            </div>
+        </div>
+
+        <!-- Amenities Menu -->
+        <div id="amenities-menu">
+            <div class="amenity-item" onclick="showAmenity('playground')">
+                <div class="amenity-number">01</div>
+                <div class="amenity-name">Children's Park</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('garden')">
+                <div class="amenity-number">02</div>
+                <div class="amenity-name">Rooftop Garden</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('sports')">
+                <div class="amenity-number">03</div>
+                <div class="amenity-name">Fitness Center</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('shopping')">
+                <div class="amenity-number">04</div>
+                <div class="amenity-name">Retail Plaza</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('parking')">
+                <div class="amenity-number">05</div>
+                <div class="amenity-name">Secure Parking</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('parks')">
+                <div class="amenity-number">06</div>
+                <div class="amenity-name">Landscaped Gardens</div>
+            </div>
+            <div class="amenity-item" onclick="showAmenity('pool')">
+                <div class="amenity-number">07</div>
+                <div class="amenity-name">Infinity Pool</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div id="nav-controls">
+            <button class="nav-btn" onclick="previousScene()">Previous</button>
+            <button class="nav-btn" onclick="nextScene()">Continue</button>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" id="error-message">
+        <h3 style="margin-bottom: 15px;">Model Loading Failed</h3>
+        <p id="error-text"></p>
+    </div>
+
+    <!-- Three.js and Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // ============================
+        // CONFIGURATION
+        // ============================
+        const CONFIG = {
+            // Replace with your actual GLB model URLs
+            buildingModelUrl: 'https://raw.githubusercontent.com/decentralize-dfw/r-e-d/main/models/building.glb',
+
+            // Fallback placeholder if above doesn't exist
+            buildingFallbackUrl: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb',
+
+            // Interior model (optional)
+            interiorModelUrl: null,
+
+            // HDRI Environment
+            environmentMapUrl: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_in_the_chalk_quarry_1k.hdr',
+
+            // Draco decoder path
+            dracoDecoderPath: 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
+        };
+
+        // ============================
+        // GLOBAL STATE
+        // ============================
+        let scene, camera, renderer, raycaster, mouse;
+        let loadingManager, gltfLoader, rgbeLoader;
+        let currentScene = 0;
+        let sceneObjects = {
+            building: null,
+            interior: null,
+            apartments: [],
+            amenities: {}
+        };
+        let selectedApartment = null;
+        let orbitControls = null;
+        let animating = false;
+        let modelLoaded = false;
+
+        // ============================
+        // SCENE CONFIGURATION
+        // ============================
+        const SCENES = {
+            0: { name: 'ARRIVAL', camera: { pos: [60, 30, 60], look: [0, 15, 0] } },
+            1: { name: 'NEIGHBORHOOD', camera: { pos: [80, 45, 80], look: [0, 10, 0] } },
+            2: { name: 'APPROACH', camera: { pos: [40, 20, 40], look: [0, 15, 0] } },
+            3: { name: 'RESIDENCE SELECTION', camera: { pos: [25, 18, 25], look: [0, 18, 0] } },
+            4: { name: 'UNIT DETAIL', camera: { pos: [15, 20, 15], look: [0, 20, 0] } },
+            5: { name: 'INTERIOR VIEW', camera: { pos: [2, 1.7, 3], look: [0, 1.7, 0] } },
+            6: { name: 'AMENITIES', camera: { pos: [50, 28, 50], look: [0, 12, 0] } }
+        };
+
+        // ============================
+        // INITIALIZATION
+        // ============================
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0f);
+            scene.fog = new THREE.Fog(0x0a0a0f, 60, 150);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+            camera.position.set(...SCENES[0].camera.pos);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.3;
+            renderer.physicallyCorrectLights = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Raycaster & Mouse
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Loading Manager
+            loadingManager = new THREE.LoadingManager();
+
+            loadingManager.onProgress = (url, loaded, total) => {
+                const progress = (loaded / total) * 100;
+                updateLoadingProgress(progress, `Loading assets... ${Math.round(progress)}%`);
+            };
+
+            loadingManager.onLoad = () => {
+                onAssetsLoaded();
+            };
+
+            loadingManager.onError = (url) => {
+                console.error('Error loading:', url);
+                showError(`Failed to load asset: ${url}`);
+            };
+
+            // GLTF Loader with Draco
+            gltfLoader = new THREE.GLTFLoader(loadingManager);
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath(CONFIG.dracoDecoderPath);
+            gltfLoader.setDRACOLoader(dracoLoader);
+
+            // RGBE Loader
+            rgbeLoader = new THREE.RGBELoader(loadingManager);
+
+            // Lights (will be enhanced with HDRI)
+            setupLighting();
+
+            // Environment
+            createEnvironment();
+
+            // Load Assets
+            loadAssets();
+
+            // Events
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('click', onMouseClick);
+
+            // Filter buttons
+            document.querySelectorAll('.room-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterApartments();
+                });
+            });
+
+            // Start render loop
+            animate();
+        }
+
+        function setupLighting() {
+            // Sun Light
+            const sunLight = new THREE.DirectionalLight(0xffbb88, 2.5);
+            sunLight.position.set(40, 50, 30);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 4096;
+            sunLight.shadow.mapSize.height = 4096;
+            sunLight.shadow.camera.left = -60;
+            sunLight.shadow.camera.right = 60;
+            sunLight.shadow.camera.top = 60;
+            sunLight.shadow.camera.bottom = -60;
+            sunLight.shadow.camera.near = 1;
+            sunLight.shadow.camera.far = 150;
+            sunLight.shadow.bias = -0.0001;
+            scene.add(sunLight);
+
+            // Sky Light
+            const skyLight = new THREE.HemisphereLight(0xffaa77, 0x334466, 0.8);
+            scene.add(skyLight);
+
+            // Ambient
+            const ambientLight = new THREE.AmbientLight(0x5566aa, 0.3);
+            scene.add(ambientLight);
+        }
+
+        function createEnvironment() {
+            // Ground
+            const groundGeo = new THREE.PlaneGeometry(200, 200);
+            const groundMat = new THREE.MeshStandardMaterial({
+                color: 0x1a1a1a,
+                roughness: 0.95,
+                metalness: 0.0
+            });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // River
+            const riverGeo = new THREE.PlaneGeometry(30, 180);
+            const riverMat = new THREE.MeshStandardMaterial({
+                color: 0x2a3d5f,
+                roughness: 0.2,
+                metalness: 0.7,
+                envMapIntensity: 1.5
+            });
+            const river = new THREE.Mesh(riverGeo, riverMat);
+            river.rotation.x = -Math.PI / 2;
+            river.position.set(-50, 0.05, 0);
+            river.receiveShadow = true;
+            scene.add(river);
+        }
+
+        function loadAssets() {
+            updateLoadingProgress(10, 'Loading environment...');
+
+            // Load HDRI
+            rgbeLoader.load(
+                CONFIG.environmentMapUrl,
+                (texture) => {
+                    texture.mapping = THREE.EquirectangularReflectionMapping;
+                    scene.environment = texture;
+                    updateLoadingProgress(30, 'Environment loaded');
+                },
+                undefined,
+                (error) => {
+                    console.warn('HDRI load failed, continuing without environment map:', error);
+                }
+            );
+
+            // Load Building Model
+            updateLoadingProgress(40, 'Loading architectural model...');
+
+            gltfLoader.load(
+                CONFIG.buildingModelUrl,
+                (gltf) => {
+                    onBuildingLoaded(gltf);
+                },
+                (progress) => {
+                    if (progress.total > 0) {
+                        const percent = 40 + (progress.loaded / progress.total) * 50;
+                        updateLoadingProgress(percent, 'Loading building model...');
+                    }
+                },
+                (error) => {
+                    console.warn('Primary model failed, trying fallback:', error);
+                    // Try fallback
+                    gltfLoader.load(
+                        CONFIG.buildingFallbackUrl,
+                        (gltf) => {
+                            console.log('Fallback model loaded');
+                            onBuildingLoaded(gltf);
+                        },
+                        undefined,
+                        (error) => {
+                            showError('Failed to load any building model. Please check CONFIG.buildingModelUrl');
+                        }
+                    );
+                }
+            );
+        }
+
+        function onBuildingLoaded(gltf) {
+            updateLoadingProgress(90, 'Processing model...');
+
+            sceneObjects.building = gltf.scene;
+
+            // Process meshes
+            gltf.scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+
+                    // Glass detection
+                    if (child.name.toLowerCase().includes('glass') ||
+                        child.name.toLowerCase().includes('window')) {
+                        child.material = new THREE.MeshPhysicalMaterial({
+                            color: 0x88bbee,
+                            transmission: 0.95,
+                            thickness: 0.5,
+                            roughness: 0.05,
+                            metalness: 0.0,
+                            transparent: true,
+                            opacity: 0.3,
+                            envMapIntensity: 1.5
+                        });
+                    }
+
+                    // Apartment/Unit detection
+                    if (child.name.toLowerCase().includes('unit') ||
+                        child.name.toLowerCase().includes('apartment') ||
+                        child.name.toLowerCase().includes('flat')) {
+
+                        // Store apartment mesh
+                        child.userData.isApartment = true;
+                        child.userData.id = sceneObjects.apartments.length;
+                        child.userData.rooms = 1 + Math.floor(Math.random() * 3);
+                        child.userData.area = 50 + Math.floor(Math.random() * 80);
+                        child.userData.price = 250000 + Math.floor(Math.random() * 500000);
+
+                        sceneObjects.apartments.push(child);
+                    }
+
+                    // Enhance materials
+                    if (child.material) {
+                        if (child.material.map) {
+                            child.material.map.encoding = THREE.sRGBEncoding;
+                        }
+                        child.material.needsUpdate = true;
+                    }
+                }
+            });
+
+            // Center and scale model
+            const box = new THREE.Box3().setFromObject(gltf.scene);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            // Adjust model position
+            gltf.scene.position.x = -center.x;
+            gltf.scene.position.z = -center.z;
+            gltf.scene.position.y = -box.min.y;
+
+            scene.add(gltf.scene);
+
+            console.log(`Model loaded: ${sceneObjects.apartments.length} apartments detected`);
+
+            modelLoaded = true;
+            updateLoadingProgress(100, 'Ready');
+        }
+
+        function onAssetsLoaded() {
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('hero-screen').classList.add('visible');
+            }, 500);
+        }
+
+        function updateLoadingProgress(percent, text) {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').textContent = text;
+        }
+
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').classList.add('visible');
+        }
+
+        // ============================
+        // ANIMATION LOOP
+        // ============================
+        function animate() {
+            requestAnimationFrame(animate);
+            if (orbitControls) orbitControls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ============================
+        // CAMERA TRANSITIONS
+        // ============================
+        function transitionCamera(targetPos, targetLook, duration = 2.5) {
+            if (animating) return;
+            animating = true;
+
+            // Disable orbit controls during transition
+            if (orbitControls) {
+                orbitControls.enabled = false;
+            }
+
+            const targetLookVec = new THREE.Vector3(...targetLook);
+
+            gsap.to(camera.position, {
+                x: targetPos[0],
+                y: targetPos[1],
+                z: targetPos[2],
+                duration: duration,
+                ease: 'power2.inOut',
+                onUpdate: () => {
+                    camera.lookAt(targetLookVec);
+                },
+                onComplete: () => {
+                    animating = false;
+                    // Re-enable orbit controls if needed
+                    if (currentScene >= 2 && currentScene <= 4) {
+                        enableOrbitControls();
+                    }
+                }
+            });
+        }
+
+        function enableOrbitControls() {
+            if (!orbitControls) {
+                orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+                orbitControls.enableDamping = true;
+                orbitControls.dampingFactor = 0.05;
+                orbitControls.minDistance = 5;
+                orbitControls.maxDistance = 100;
+                orbitControls.maxPolarAngle = Math.PI / 2;
+            }
+            orbitControls.enabled = true;
+        }
+
+        function disableOrbitControls() {
+            if (orbitControls) {
+                orbitControls.enabled = false;
+            }
+        }
+
+        // ============================
+        // SCENE MANAGEMENT
+        // ============================
+        function startExperience() {
+            document.getElementById('hero-screen').classList.add('hidden');
+            setTimeout(() => nextScene(), 300);
+        }
+
+        function nextScene() {
+            if (currentScene < Object.keys(SCENES).length - 1) {
+                currentScene++;
+                updateScene();
+            }
+        }
+
+        function previousScene() {
+            if (currentScene > 1) {
+                currentScene--;
+                updateScene();
+            }
+        }
+
+        function updateScene() {
+            const sceneConfig = SCENES[currentScene];
+
+            // Update title
+            const titleEl = document.getElementById('scene-title');
+            titleEl.textContent = sceneConfig.name;
+            titleEl.classList.add('visible');
+
+            // Camera transition
+            transitionCamera(sceneConfig.camera.pos, sceneConfig.camera.look, 3);
+
+            // Hide all UI
+            document.getElementById('stats-panel').classList.remove('visible');
+            document.getElementById('filter-panel').classList.remove('visible');
+            document.getElementById('floorplan-panel').classList.remove('visible');
+            document.getElementById('amenities-menu').classList.remove('visible');
+            document.getElementById('nav-controls').classList.add('visible');
+
+            // Disable orbit by default
+            disableOrbitControls();
+
+            // Scene-specific UI & interactions
+            setTimeout(() => {
+                if (currentScene === 1) {
+                    document.getElementById('stats-panel').classList.add('visible');
+                } else if (currentScene === 2 || currentScene === 3) {
+                    document.getElementById('filter-panel').classList.add('visible');
+                    enableOrbitControls();
+                } else if (currentScene === 6) {
+                    document.getElementById('amenities-menu').classList.add('visible');
+                }
+            }, 1000);
+        }
+
+        // ============================
+        // FILTERING
+        // ============================
+        function filterApartments() {
+            if (!modelLoaded || sceneObjects.apartments.length === 0) return;
+
+            const selectedRooms = parseInt(document.querySelector('.room-btn.active').dataset.rooms);
+
+            sceneObjects.apartments.forEach(apt => {
+                if (apt.material) {
+                    if (apt.userData.rooms === selectedRooms) {
+                        // Highlight matching
+                        apt.material.emissive = new THREE.Color(0xffaa44);
+                        apt.material.emissiveIntensity = 0.4;
+                        apt.material.opacity = 1.0;
+                        apt.material.transparent = false;
+                    } else {
+                        // Dim non-matching
+                        apt.material.emissive = new THREE.Color(0x000000);
+                        apt.material.emissiveIntensity = 0;
+                        apt.material.opacity = 0.2;
+                        apt.material.transparent = true;
+                    }
+                }
+            });
+        }
+
+        // ============================
+        // INTERACTION
+        // ============================
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            if ((currentScene === 3 || currentScene === 4) && modelLoaded) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(sceneObjects.apartments, true);
+
+                const tooltip = document.getElementById('apt-tooltip');
+
+                if (intersects.length > 0) {
+                    const obj = intersects[0].object;
+
+                    // Find parent apartment if this is a child mesh
+                    let apt = obj;
+                    while (apt && !apt.userData.isApartment) {
+                        apt = apt.parent;
+                    }
+
+                    if (apt && apt.userData.isApartment) {
+                        tooltip.innerHTML = `
+                            <strong>Residence #${apt.userData.id}</strong><br>
+                            ${apt.userData.rooms} Bedrooms • ${apt.userData.area}m²<br>
+                            $${apt.userData.price.toLocaleString()}
+                        `;
+                        tooltip.style.left = event.clientX + 20 + 'px';
+                        tooltip.style.top = event.clientY + 20 + 'px';
+                        tooltip.classList.add('visible');
+
+                        // Highlight
+                        if (apt.material) {
+                            apt.material.emissive = new THREE.Color(0xffffff);
+                            apt.material.emissiveIntensity = 0.3;
+                        }
+                    }
+                } else {
+                    tooltip.classList.remove('visible');
+                    // Reset highlights
+                    sceneObjects.apartments.forEach(a => {
+                        if (a.material && a !== selectedApartment) {
+                            a.material.emissive = new THREE.Color(0x000000);
+                            a.material.emissiveIntensity = 0;
+                        }
+                    });
+                }
+            }
+        }
+
+        function onMouseClick(event) {
+            if (currentScene === 4 && modelLoaded) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(sceneObjects.apartments, true);
+
+                if (intersects.length > 0) {
+                    const obj = intersects[0].object;
+
+                    let apt = obj;
+                    while (apt && !apt.userData.isApartment) {
+                        apt = apt.parent;
+                    }
+
+                    if (apt && apt.userData.isApartment) {
+                        selectedApartment = apt;
+
+                        // Update floor plan info
+                        document.querySelector('.floorplan-title').textContent = `Residence #${apt.userData.id}`;
+                        document.querySelector('.floorplan-info').textContent =
+                            `${apt.userData.rooms} Bedrooms • ${apt.userData.area}m² • Floor ${Math.floor(apt.userData.id / 4) + 1} • River Facing • Available`;
+
+                        document.getElementById('floorplan-panel').classList.add('visible');
+                    }
+                }
+            }
+        }
+
+        function goToRoom(room) {
+            currentScene = 5;
+            updateScene();
+        }
+
+        function startWalkthrough() {
+            currentScene = 5;
+            updateScene();
+        }
+
+        function showAmenity(amenity) {
+            const positions = {
+                playground: [[-30, 12, 30], [-30, 3, 30]],
+                garden: [[0, 42, 10], [0, 35, 0]],
+                sports: [[35, 15, 25], [35, 5, 25]],
+                parking: [[25, 12, -35], [25, 3, -35]],
+                pool: [[0, 38, -15], [0, 35, -10]]
+            };
+
+            if (positions[amenity]) {
+                transitionCamera(positions[amenity][0], positions[amenity][1], 2.5);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ============================
+        // START
+        // ============================
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
