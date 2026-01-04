@@ -805,9 +805,15 @@
                 setupEnvironment();
                 loadSounds();
                 setupEventListeners();
-            checkVRCapability(); // This will decide desktop/VR and call runSequence(-1)
+                checkVRCapability(); // This will decide desktop/VR and call runSequence(-1)
 
-            renderer.setAnimationLoop(animate);
+                renderer.setAnimationLoop(animate);
+                
+                markPerformance('init-complete');
+            } catch (error) {
+                console.error('❌ Error during initialization:', error);
+                throw error; // Re-throw to be caught by application entry point
+            }
         }
 
         function setupEnvironment() {
