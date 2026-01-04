@@ -217,9 +217,25 @@
             </div>
         </div>
 
-        <!-- Hotspots Container (Scene 4) -->
-        <div id="hotspotsContainer" class="absolute inset-0 hidden">
+        <!-- Hotspots Container (Scene 1 & 4) -->
+        <div id="hotspotsContainer" class="absolute inset-0 hidden pointer-events-none">
             <!-- Hotspots will be dynamically positioned -->
+        </div>
+
+        <!-- Hotspot Modal -->
+        <div id="hotspotModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('hotspotModal').classList.add('hidden')"></div>
+            <div class="glass-panel relative rounded-2xl p-8 max-w-md mx-4 z-10">
+                <button onclick="document.getElementById('hotspotModal').classList.add('hidden')"
+                        class="absolute top-4 right-4 text-white/60 hover:text-white text-2xl">&times;</button>
+                <h3 id="hotspotTitle" class="text-2xl font-light tracking-wider uppercase mb-4"></h3>
+                <p id="hotspotDistance" class="text-sm text-white/70 mb-2"></p>
+                <p id="hotspotInfo" class="text-white/80 mb-6"></p>
+                <a id="hotspotMapsLink" href="#" target="_blank"
+                   class="glass-panel px-6 py-3 rounded-lg text-sm tracking-wider uppercase hover:bg-white/20 transition-all inline-block">
+                    Open in Google Maps →
+                </a>
+            </div>
         </div>
 
     </div>
@@ -413,6 +429,44 @@
                 sunColor: 0xfff9f0,
                 sunIntensity: 2.8,
                 envIntensity: 0.6
+            },
+            hotspots: {
+                surrounding: [
+                    { name: 'Central Park', distance: '800m', info: 'Beautiful green space perfect for morning walks', mapsLink: 'https://maps.google.com/?q=40.785091,-73.968285' },
+                    { name: 'Shopping District', distance: '1.2km', info: 'Luxury retail and boutiques', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Cultural Center', distance: '600m', info: 'Museum and art galleries', mapsLink: 'https://maps.google.com/?q=40.779437,-73.963244' },
+                    { name: 'Premium Restaurant Row', distance: '450m', info: 'Fine dining establishments', mapsLink: 'https://maps.google.com/?q=40.762737,-73.983739' },
+                    { name: 'Business District', distance: '2.1km', info: 'Major corporate offices', mapsLink: 'https://maps.google.com/?q=40.752726,-73.977229' },
+                    { name: 'Riverside Promenade', distance: '1.5km', info: 'Waterfront walking path', mapsLink: 'https://maps.google.com/?q=40.722012,-74.006747' },
+                    { name: 'International School', distance: '900m', info: 'Top-rated educational facility', mapsLink: 'https://maps.google.com/?q=40.774368,-73.965849' },
+                    { name: 'Luxury Spa & Wellness', distance: '320m', info: 'Premium health facilities', mapsLink: 'https://maps.google.com/?q=40.767778,-73.980556' },
+                    { name: 'Artisan Market', distance: '1.8km', info: 'Organic produce and local crafts', mapsLink: 'https://maps.google.com/?q=40.728224,-73.995643' },
+                    { name: 'Boutique Cinema', distance: '550m', info: 'Independent film theater', mapsLink: 'https://maps.google.com/?q=40.730610,-73.989040' }
+                ],
+                transportation: [
+                    { name: 'Metro Station - Line A', distance: '250m', info: 'Direct connection to city center (5 min walk)', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Bus Hub', distance: '180m', info: 'Multiple routes to all districts', mapsLink: 'https://maps.google.com/?q=40.759011,-73.984528' },
+                    { name: 'Metro Station - Line B', distance: '650m', info: 'Express line to airport', mapsLink: 'https://maps.google.com/?q=40.761431,-73.983433' },
+                    { name: 'Taxi Stand', distance: '120m', info: '24/7 available', mapsLink: 'https://maps.google.com/?q=40.758432,-73.984891' },
+                    { name: 'Bike Share Station', distance: '90m', info: 'Eco-friendly transportation', mapsLink: 'https://maps.google.com/?q=40.758123,-73.985421' },
+                    { name: 'Electric Scooter Hub', distance: '200m', info: 'Quick urban mobility', mapsLink: 'https://maps.google.com/?q=40.759234,-73.984123' },
+                    { name: 'Car Share Parking', distance: '350m', info: 'Premium vehicle fleet', mapsLink: 'https://maps.google.com/?q=40.760123,-73.983567' },
+                    { name: 'Helipad', distance: '3.2km', info: 'Private helicopter service', mapsLink: 'https://maps.google.com/?q=40.771199,-73.976809' },
+                    { name: 'Ferry Terminal', distance: '2.8km', info: 'Water taxi to downtown', mapsLink: 'https://maps.google.com/?q=40.706877,-74.017890' },
+                    { name: 'Train Station', distance: '1.1km', info: 'Inter-city rail connections', mapsLink: 'https://maps.google.com/?q=40.752998,-73.977056' }
+                ],
+                units: [
+                    { name: 'Penthouse Suite', distance: 'Top Floor', info: '360° panoramic views, private terrace', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: '2BR Corner Unit', distance: '12th Floor', info: 'Dual aspect, premium finishes', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Studio Loft', distance: '8th Floor', info: 'Modern minimalist design', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: '3BR Family Home', distance: '15th Floor', info: 'Spacious layout, kids room', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Garden Apartment', distance: 'Ground Floor', info: 'Private outdoor space', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: '1BR Smart Home', distance: '6th Floor', info: 'Fully automated systems', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Duplex Residence', distance: '18-19th Floor', info: 'Two-story luxury living', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: '2BR + Den', distance: '10th Floor', info: 'Home office included', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Executive Suite', distance: '20th Floor', info: 'VIP amenities access', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' },
+                    { name: 'Art Collector Unit', distance: '14th Floor', info: 'Gallery walls, high ceilings', mapsLink: 'https://maps.google.com/?q=40.758896,-73.985130' }
+                ]
             }
         };
 
@@ -1336,12 +1390,16 @@
                 switch (currentScene) {
                     case 1:
                         const concepts = ['opt1', 'opt2', 'opt3'];
+                        const hotspotTypes = ['surrounding', 'transportation', 'units'];
                         this.updatePanels(
                             `html_scene1_${concepts[index]}_left`,
                             `html_scene1_${concepts[index]}_right`
                         );
                         this.DOM.description.textContent = config[index].name;
                         this.DOM.description.classList.remove('hidden');
+
+                        // Show hotspots for the selected option
+                        this.showScene1Hotspots(hotspotTypes[index]);
                         break;
 
                     case 2:
@@ -1424,6 +1482,58 @@
                 this.DOM.leftPanel.classList.add('-translate-x-[120%]');
                 this.DOM.rightPanel.classList.add('translate-x-[120%]');
                 this.DOM.hotspotsContainer.classList.add('hidden');
+                this.DOM.hotspotsContainer.innerHTML = '';
+            }
+
+            showScene1Hotspots(type) {
+                this.DOM.hotspotsContainer.classList.remove('hidden');
+                this.DOM.hotspotsContainer.innerHTML = '';
+
+                const hotspots = CONFIG.hotspots[type];
+                if (!hotspots) return;
+
+                // Generate random positions for hotspots (distributed across the screen)
+                hotspots.forEach((hotspot, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'hotspot pointer-events-auto';
+
+                    // Semi-random but distributed positioning
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    const left = 20 + col * 30 + (Math.random() * 10);
+                    const top = 25 + row * 18 + (Math.random() * 10);
+
+                    div.style.left = `${left}%`;
+                    div.style.top = `${top}%`;
+                    div.setAttribute('aria-label', hotspot.name);
+                    div.setAttribute('role', 'button');
+                    div.setAttribute('tabindex', '0');
+
+                    div.addEventListener('click', () => {
+                        this.showHotspotModal(hotspot);
+                        Analytics.trackButtonClick(`Hotspot: ${hotspot.name}`);
+                    });
+
+                    this.DOM.hotspotsContainer.appendChild(div);
+                });
+            }
+
+            showHotspotModal(hotspot) {
+                const modal = document.getElementById('hotspotModal');
+                document.getElementById('hotspotTitle').textContent = hotspot.name;
+                document.getElementById('hotspotDistance').textContent = `Distance: ${hotspot.distance}`;
+                document.getElementById('hotspotInfo').textContent = hotspot.info;
+                document.getElementById('hotspotMapsLink').href = hotspot.mapsLink;
+
+                modal.classList.remove('hidden');
+
+                // Animate modal entrance
+                gsap.from(modal.querySelector('.glass-panel'), {
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: 'back.out(1.7)'
+                });
             }
 
             createHotspots() {
