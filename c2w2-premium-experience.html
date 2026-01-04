@@ -888,6 +888,10 @@
         async function scene1_PostStart() {
             DOM.startButton.textContent = 'Next';
 
+            // Show main city models
+            showModel(0); // Main city model with surroundings
+            showModel(5); // Additional city context
+
             setupCamera({
                 type: 'orbit',
                 cameraType: 'orthographic',
