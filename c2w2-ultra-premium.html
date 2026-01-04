@@ -157,7 +157,7 @@
             <!-- Model Label & Carousel -->
             <div class="flex items-center gap-4">
                 <div id="modelLabel" class="text-xs font-semibold tracking-[0.2em] uppercase hidden">Model</div>
-                <div id="modelToggleContainer" class="hidden overflow-x-auto carousel-container max-w-[calc(100vw-200px)] flex gap-3 pb-2">
+                <div id="modelToggleContainer" class="hidden overflow-x-hidden carousel-container max-w-[calc(100vw-200px)] flex gap-3 flex-wrap">
                     <!-- Buttons will be dynamically created -->
                 </div>
             </div>
@@ -1226,6 +1226,77 @@
                 }
             }
 
+            // Instant Camera Setup (for interior scenes - no wall clipping)
+            setupCameraInstant(config) {
+                this.orbitControls.enabled = false;
+                this.orbitControls.autoRotate = false;
+
+                if (this.pointerLockControls.isLocked) {
+                    this.pointerLockControls.unlock();
+                }
+
+                let newCam = config.cameraType === 'orthographic' ? this.orthographicCamera : this.perspectiveCamera;
+                if (config.type === 'pointerlock') newCam = this.perspectiveCamera;
+
+                if (this.camera !== newCam) {
+                    if (this.playerRig.children.includes(this.camera)) {
+                        this.playerRig.remove(this.camera);
+                    }
+                    this.camera = newCam;
+                    this.playerRig.add(this.camera);
+                    this.camera.add(this.audioListener);
+                    this.orbitControls.object = this.camera;
+
+                    this.composer.passes.forEach(pass => {
+                        if (pass.camera) pass.camera = this.camera;
+                    });
+                }
+
+                const pos = config.pos || { x: 0, y: 5, z: 10 };
+                const look = config.lookAt || { x: 0, y: 1, z: 0 };
+
+                if (config.type === 'orbit') {
+                    // INSTANT camera position (no animation - prevents wall clipping)
+                    this.camera.position.set(pos.x, pos.y, pos.z);
+                    this.camera.lookAt(look.x, look.y, look.z);
+
+                    this.orbitControls.target.set(look.x, look.y, look.z);
+                    this.orbitControls.autoRotate = config.autoRotate || false;
+                    this.orbitControls.autoRotateSpeed = config.autoRotateSpeed || 1.0;
+                    this.orbitControls.enablePan = config.enablePan !== undefined ? config.enablePan : false;
+                    this.orbitControls.enableZoom = config.enableZoom !== undefined ? config.enableZoom : true;
+                    this.orbitControls.enableRotate = config.enableRotate !== undefined ? config.enableRotate : true;
+                    this.orbitControls.maxPolarAngle = Math.PI / 2 * 0.98;
+
+                    if (config.cameraType === 'orthographic') {
+                        const aspect = window.innerWidth / window.innerHeight;
+                        const frustum = CONFIG.camera.orthoFrustumSize;
+                        this.camera.left = frustum * aspect / -2;
+                        this.camera.right = frustum * aspect / 2;
+                        this.camera.top = frustum / 2;
+                        this.camera.bottom = frustum / -2;
+                    } else {
+                        this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    }
+                    this.camera.updateProjectionMatrix();
+
+                    this.orbitControls.enabled = true;
+                    this.orbitControls.update();
+
+                } else if (config.type === 'pointerlock') {
+                    this.camera.fov = config.fov || CONFIG.camera.defaultFOV;
+                    this.camera.updateProjectionMatrix();
+
+                    this.pointerLockControls.getObject().position.set(pos.x, pos.y, pos.z);
+                    this.playerVelocity.set(0, 0, 0);
+                    this.playerOnFloor = true;
+
+                    if (!this.vrActive) {
+                        this.pointerLockControls.lock();
+                    }
+                }
+            }
+
             setupToggles(config) {
                 if (config) {
                     this.DOM.modelLabel.classList.remove('hidden');
@@ -1293,16 +1364,17 @@
 
                     case 4:
                         const cameras = [
-                            { pos: { x: 1, y: 1.6, z: 1.6 }, look: { x: 1, y: 1.6, z: 1.5 }, fov: 80 },
-                            { pos: { x: -2, y: 1.6, z: 3.1 }, look: { x: -2.1, y: 1.6, z: 3.2 }, fov: 80 },
-                            { pos: { x: -2, y: 1.6, z: 0 }, look: { x: -2.1, y: 1.6, z: -0.1 }, fov: 80 },
-                            { pos: { x: -2, y: 1.6, z: 2.1 }, look: { x: -2.1, y: 1.6, z: 2.2 }, fov: 80 },
-                            { pos: { x: 4.4, y: 1.6, z: 0 }, look: { x: 4.5, y: 1.6, z: -0.1 }, fov: 80 },
-                            { pos: { x: 3.9, y: 1.6, z: 3.7 }, look: { x: 4.0, y: 1.6, z: 3.8 }, fov: 80 }
+                            { pos: { x: 1, y: 1.6, z: 1.6 }, look: { x: 1, y: 1.6, z: 1.5 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 3.1 }, look: { x: -2.1, y: 1.6, z: 3.2 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 0 }, look: { x: -2.1, y: 1.6, z: -0.1 }, fov: 90 },
+                            { pos: { x: -2, y: 1.6, z: 2.1 }, look: { x: -2.1, y: 1.6, z: 2.2 }, fov: 90 },
+                            { pos: { x: 4.4, y: 1.6, z: 0 }, look: { x: 4.5, y: 1.6, z: -0.1 }, fov: 90 },
+                            { pos: { x: 3.9, y: 1.6, z: 3.7 }, look: { x: 4.0, y: 1.6, z: 3.8 }, fov: 90 }
                         ];
 
                         const cam = cameras[index];
-                        this.setupCameraGSAP({
+                        // Instant camera switch - NO animation (prevent going through walls)
+                        this.setupCameraInstant({
                             type: 'orbit',
                             cameraType: 'perspective',
                             pos: cam.pos,
