@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="C2W2 Virtual Runway - Premium Awwwards-Level 3D Architectural Experience">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='50' font-size='80'>🏢</text></svg>">
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;C2W2 Virtual Runway&quot;,&quot;short_name&quot;:&quot;C2W2&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;}">
+    <title>C2W2 Virtual Runway - Premium Edition | Digital Forgery Workshop</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/",
+            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm",
+            "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm"
+        }
+    }
+    </script>
+    
+    <style>
+        /* Noise texture for glassmorphism */
+        @keyframes noise {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 10%); }
+            80% { transform: translate(-15%, 0); }
+            90% { transform: translate(10%, 5%); }
+        }
+        
+        .glass-panel {
+            backdrop-filter: blur(24px) saturate(180%);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+            animation: noise 8s steps(10) infinite;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        
+        /* Pulsing hotspot animation */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.6);
+                opacity: 0;
+            }
+        }
+        
+        .hotspot-ping {
+            animation: pulse-ring 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        
+        /* Loading spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Smooth fade transitions */
+        .fade-enter {
+            opacity: 0;
+        }
+        
+        .fade-enter-active {
+            transition: opacity 0.5s ease-in;
+            opacity: 1;
+        }
+        
+        /* Carousel styles */
+        .carousel-container {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .carousel-item {
+            scroll-snap-align: center;
+        }
+        
+        /* Accessibility focus styles */
+        *:focus-visible {
+            outline: 2px solid rgba(59, 130, 246, 0.8);
+            outline-offset: 2px;
+        }
+        
+        /* Hide default canvas cursor for custom UI */
+        canvas {
+            cursor: none !important;
+        }
+    </style>
+</head>
+<body class="bg-black text-white overflow-hidden">
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div class="text-center">
+            <div class="spinner w-16 h-16 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p class="text-xl font-light">Loading Premium Experience...</p>
+            <p id="loading-progress" class="text-sm text-gray-400 mt-2">0%</p>
+        </div>
+    </div>
+    
+    <!-- Main UI Container -->
+    <div id="ui-container" class="fixed inset-0 pointer-events-none" style="display: none;">
+        
+        <!-- Top Navigation Bar -->
+        <nav class="absolute top-0 left-0 right-0 p-4 md:p-6 pointer-events-auto">
+            <div class="glass-panel rounded-2xl px-6 py-4 flex items-center justify-between relative overflow-hidden">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-lg md:text-xl font-bold tracking-tight">C2W2 Virtual Runway</h1>
+                    <span class="hidden md:inline text-xs text-gray-400">Premium Edition</span>
+                </div>
+                
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <!-- Day/Night Toggle -->
+                    <button id="day-night-toggle" 
+                            class="glass-panel px-3 md:px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 flex items-center space-x-2"
+                            aria-label="Toggle day/night mode"
+                            tabindex="0">
+                        <span id="day-night-icon" class="text-xl">🌞</span>
+                        <span class="hidden md:inline text-sm">Day</span>
+                    </button>
+                    
+                    <!-- Screenshot Button -->
+                    <button id="screenshot-btn" 
+                            class="glass-panel px-3 md:px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+                            aria-label="Take screenshot"
+                            tabindex="0">
+                        <span class="text-xl">📸</span>
+                    </button>
+                    
+                    <!-- Settings/Configurator -->
+                    <button id="settings-btn" 
+                            class="glass-panel px-3 md:px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+                            aria-label="Open settings"
+                            tabindex="0">
+                        <span class="text-xl">⚙️</span>
+                    </button>
+                    
+                    <!-- Fullscreen Toggle -->
+                    <button id="fullscreen-btn" 
+                            class="glass-panel px-3 md:px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+                            aria-label="Toggle fullscreen"
+                            tabindex="0">
+                        <span class="text-xl">⛶</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Scene Carousel (Mobile Optimized) -->
+        <div class="absolute bottom-20 md:bottom-24 left-0 right-0 px-4 pointer-events-auto">
+            <div id="scene-carousel" class="carousel-container flex space-x-3 overflow-x-auto pb-4 snap-x scrollbar-hide">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+        
+        <!-- Bottom Control Bar -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6 pointer-events-auto">
+            <div class="glass-panel rounded-2xl px-6 py-4 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <h2 id="scene-title" class="text-base md:text-lg font-semibold mb-1">Welcome</h2>
+                        <p id="scene-description" class="text-xs md:text-sm text-gray-300 line-clamp-2">Experience luxury architectural design in immersive 3D</p>
+                    </div>
+                    
+                    <button id="next-scene-btn" 
+                            class="ml-4 bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2"
+                            aria-label="Next scene"
+                            tabindex="0">
+                        <span>Next</span>
+                        <span class="text-xl">→</span>
+                    </button>
+                </div>
+                
+                <!-- FPS Counter -->
+                <div class="absolute top-2 right-2 text-xs text-gray-400">
+                    <span id="fps-counter">60 FPS</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Side Configurator Panel (Hidden by default) -->
+        <div id="configurator-panel" class="absolute top-20 right-4 w-80 glass-panel rounded-2xl p-6 hidden pointer-events-auto">
+            <div class="relative overflow-hidden">
+                <h3 class="text-lg font-semibold mb-4">Scene Configurator</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm text-gray-300 mb-2 block">Lighting Color</label>
+                        <input type="color" id="light-color-picker" value="#ffffff" 
+                               class="w-full h-10 rounded-lg cursor-pointer"
+                               aria-label="Choose lighting color">
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm text-gray-300 mb-2 block">Light Intensity</label>
+                        <input type="range" id="light-intensity" min="0" max="5" step="0.1" value="1" 
+                               class="w-full"
+                               aria-label="Adjust light intensity">
+                        <span id="light-intensity-value" class="text-xs text-gray-400">1.0</span>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm text-gray-300 mb-2 block">Post-Processing Quality</label>
+                        <select id="quality-select" 
+                                class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2"
+                                aria-label="Select rendering quality">
+                            <option value="high">High (Auto)</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low (Performance)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="document.getElementById('configurator-panel').classList.add('hidden')" 
+                        class="absolute top-2 right-2 text-gray-400 hover:text-white"
+                        aria-label="Close configurator">✕</button>
+            </div>
+        </div>
+        
+        <!-- 3D Hotspots Container -->
+        <div id="hotspots-container" class="fixed inset-0 pointer-events-none">
+            <!-- Dynamically positioned hotspots -->
+        </div>
+        
+        <!-- Hotspot Info Card -->
+        <div id="hotspot-info" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 glass-panel rounded-2xl p-6 hidden pointer-events-auto z-40">
+            <h3 id="hotspot-title" class="text-xl font-bold mb-2"></h3>
+            <p id="hotspot-description" class="text-sm text-gray-300 mb-4"></p>
+            <div id="hotspot-details" class="text-xs text-gray-400"></div>
+            <button onclick="document.getElementById('hotspot-info').classList.add('hidden')" 
+                    class="mt-4 w-full bg-white/20 hover:bg-white/30 py-2 rounded-lg transition-all"
+                    aria-label="Close info">Close</button>
+        </div>
+        
+        <!-- Custom Cursor (Desktop) -->
+        <div id="custom-cursor" class="fixed w-4 h-4 bg-white rounded-full pointer-events-none mix-blend-difference hidden md:block" style="z-index: 9999;"></div>
+        
+        <!-- Tooltip -->
+        <div id="tooltip" class="fixed pointer-events-none bg-black/80 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap hidden" style="z-index: 9999;"></div>
+    </div>
+    
+    <!-- Instructions Overlay (Initial) -->
+    <div id="instructions-overlay" class="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel rounded-2xl p-8 md:p-12 max-w-md mx-4 text-center relative overflow-hidden">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4">Welcome to C2W2</h2>
+            <p class="text-gray-300 mb-6">Experience cutting-edge architectural visualization with immersive 3D walkthroughs, VR support, and real-time configurator.</p>
+            
+            <div class="space-y-2 text-sm text-left mb-6 text-gray-400">
+                <p>🖱️ <strong>Mouse:</strong> Rotate & Zoom</p>
+                <p>⌨️ <strong>WASD:</strong> Move (Walkthrough mode)</p>
+                <p>🎮 <strong>VR:</strong> WebXR supported</p>
+            </div>
+            
+            <button id="start-experience-btn" 
+                    class="w-full bg-white text-black hover:bg-gray-200 py-4 rounded-xl font-bold text-lg transition-all duration-300"
+                    aria-label="Start experience"
+                    tabindex="0">
+                Start Experience
+            </button>
+        </div>
+    </div>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+        import { VRButton } from 'three/addons/webxr/VRButton.js';
+        import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+        import gsap from 'gsap';
+        import * as CANNON from 'cannon-es';
+        
+        // ============================================================================
+        // CONFIGURATION
+        // ============================================================================
+        
+        const CONFIG = {
+            models: {
+                urls: [
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-opt-v2.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-ghost.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-metal-v1.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2city-whitefacade-v3.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2kopuk-normalfacade-opt-v5.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2-sehirici-apartmanici-opt-v6.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/DEMO2interior-soloapartement-opt-v4.glb',
+                    'https://raw.githubusercontent.com/decentralize-dfw/vea-randomfiles/main/SCENE5-COLLDERd.glb'
+                ],
+                fallbackGeometry: new THREE.BoxGeometry(2, 2, 2)
+            },
+            
+            hdri: {
+                day: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr',
+                night: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr' // Same for now, would be different HDRI
+            },
+            
+            scenes: [
+                {
+                    id: 0,
+                    title: 'Architectural Vision',
+                    description: 'Discover the bold exterior design merging contemporary elegance with urban sophistication',
+                    models: [0, 4],
+                    camera: { position: { x: 0, y: 20, z: 15 }, lookAt: { x: 0, y: 1, z: 0 } },
+                    controls: 'orbit',
+                    autoRotate: true
+                },
+                {
+                    id: 1,
+                    title: 'Context & Connectivity',
+                    description: 'Perfectly positioned in the heart of the city, seamlessly integrated with premium transportation networks',
+                    models: [0, 4],
+                    camera: { position: { x: 0, y: 30, z: 15 }, lookAt: { x: 0, y: 4, z: 0 } },
+                    controls: 'orbit'
+                },
+                {
+                    id: 2,
+                    title: 'Design Excellence',
+                    description: 'Compare prestigious facade options crafted by award-winning architects',
+                    models: [0, 3, 2, 4],
+                    camera: { position: { x: 0, y: 30, z: 15 }, lookAt: { x: 0, y: 4, z: 0 } },
+                    controls: 'orbit',
+                    variants: ['Classic Elegance', 'Modern Luxury']
+                },
+                {
+                    id: 3,
+                    title: 'Structural Innovation',
+                    description: 'Explore the engineering mastery behind this architectural landmark',
+                    models: [2, 5],
+                    camera: { position: { x: 15, y: 8, z: -15 }, lookAt: { x: 0, y: 4, z: 0 } },
+                    controls: 'orbit'
+                },
+                {
+                    id: 4,
+                    title: 'Interior Showcase',
+                    description: 'Step inside meticulously designed living spaces featuring premium finishes and breathtaking views',
+                    models: [6],
+                    camera: { position: { x: 1, y: 1.6, z: 1.6 }, lookAt: { x: 1, y: 1.6, z: 1.5 } },
+                    controls: 'orbit',
+                    hotspots: [
+                        { position: { x: -2, y: 1.6, z: 3.1 }, title: 'Italian Marble Bathroom', description: 'Spa-inspired sanctuary with Calacatta Gold marble', details: 'Material: Calacatta Gold | Finish: Polished | Origin: Carrara, Italy' },
+                        { position: { x: 1, y: 1.6, z: 1.6 }, title: 'Living Suite', description: 'Expansive living area with floor-to-ceiling windows', details: 'Area: 45m² | Ceiling Height: 3.2m | Smart Home Ready' },
+                        { position: { x: 4.4, y: 1.6, z: 0 }, title: 'Master Bedroom', description: 'Private retreat with panoramic city views', details: 'Area: 32m² | Built-in Wardrobes | Blackout Automation' }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: 'Immersive Walkthrough',
+                    description: 'Explore freely with realistic physics and collision detection',
+                    models: [6, 7],
+                    camera: { position: { x: 1.4, y: 1.6, z: -0.6 }, lookAt: { x: 1.4, y: 1.6, z: 0 } },
+                    controls: 'firstperson'
+                }
+            ],
+            
+            physics: {
+                gravity: -9.82,
+                playerHeight: 1.6,
+                playerRadius: 0.4,
+                moveSpeed: 5,
+                jumpForce: 5
+            },
+            
+            quality: {
+                fpsThreshold: 45,
+                targetFPS: 60,
+                checkInterval: 1000
+            }
+        };
+        
+        // ============================================================================
+        // ANALYTICS HOOKS
+        // ============================================================================
+        
+        const Analytics = {
+            trackEvent(category, action, label = '') {
+                console.log(`📊 Analytics: ${category} - ${action}${label ? ` - ${label}` : ''}`);
+                // Integration point for Google Analytics, Mixpanel, etc.
+            },
+            
+            trackSceneChange(sceneId, sceneName) {
+                this.trackEvent('Scene', 'Change', `${sceneId}: ${sceneName}`);
+            },
+            
+            trackButtonClick(buttonName) {
+                this.trackEvent('UI', 'Click', buttonName);
+            },
+            
+            trackFeatureUse(featureName) {
+                this.trackEvent('Feature', 'Use', featureName);
+            }
+        };
+        
+        // ============================================================================
+        // QUALITY MANAGER CLASS
+        // ============================================================================
+        
+        class QualityManager {
+            constructor(renderer, composer) {
+                this.renderer = renderer;
+                this.composer = composer;
+                this.fps = 60;
+                this.frameCount = 0;
+                this.lastTime = performance.now();
+                this.qualityLevel = 'high';
+                this.bloomPass = null;
+                this.ssaoPass = null;
+                
+                this.startMonitoring();
+            }
+            
+            startMonitoring() {
+                setInterval(() => {
+                    const currentTime = performance.now();
+                    const deltaTime = currentTime - this.lastTime;
+                    this.fps = Math.round((this.frameCount * 1000) / deltaTime);
+                    this.frameCount = 0;
+                    this.lastTime = currentTime;
+                    
+                    // Update UI
+                    const fpsCounter = document.getElementById('fps-counter');
+                    if (fpsCounter) {
+                        fpsCounter.textContent = `${this.fps} FPS`;
+                        fpsCounter.style.color = this.fps >= 50 ? '#4ade80' : this.fps >= 30 ? '#fbbf24' : '#ef4444';
+                    }
+                    
+                    // Auto-adjust quality
+                    if (this.qualityLevel === 'high' && this.fps < CONFIG.quality.fpsThreshold) {
+                        this.downgradeQuality();
+                    }
+                }, CONFIG.quality.checkInterval);
+            }
+            
+            countFrame() {
+                this.frameCount++;
+            }
+            
+            downgradeQuality() {
+                console.log('⚡ Quality Manager: Downgrading to maintain performance');
+                this.qualityLevel = 'medium';
+                
+                if (this.bloomPass) {
+                    this.bloomPass.strength *= 0.5;
+                }
+                if (this.ssaoPass) {
+                    this.ssaoPass.enabled = false;
+                }
+                
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                Analytics.trackEvent('Performance', 'Quality Downgrade', 'Auto');
+            }
+            
+            setQuality(level) {
+                this.qualityLevel = level;
+                console.log(`🎨 Quality set to: ${level}`);
+                
+                switch (level) {
+                    case 'low':
+                        this.renderer.setPixelRatio(1);
+                        if (this.ssaoPass) this.ssaoPass.enabled = false;
+                        if (this.bloomPass) this.bloomPass.enabled = false;
+                        break;
+                    case 'medium':
+                        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                        if (this.ssaoPass) this.ssaoPass.enabled = false;
+                        if (this.bloomPass) this.bloomPass.enabled = true;
+                        break;
+                    case 'high':
+                        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                        if (this.ssaoPass) this.ssaoPass.enabled = true;
+                        if (this.bloomPass) this.bloomPass.enabled = true;
+                        break;
+                }
+                
+                Analytics.trackEvent('Settings', 'Quality Change', level);
+            }
+        }
+        
+        // ============================================================================
+        // APPLICATION CLASS
+        // ============================================================================
+        
+        class VirtualRunwayApp {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.composer = null;
+                this.controls = null;
+                this.qualityManager = null;
+                this.physicsWorld = null;
+                this.currentScene = -1;
+                this.isVR = false;
+                this.isDayMode = true;
+                this.loadedModels = [];
+                this.hotspots = [];
+                
+                this.init();
+            }
+            
+            async init() {
+                console.log('🚀 Initializing Virtual Runway Premium...');
+                
+                try {
+                    // Setup Three.js
+                    this.setupScene();
+                    this.setupRenderer();
+                    this.setupCamera();
+                    this.setupLights();
+                    this.setupPostProcessing();
+                    this.setupLoaders();
+                    
+                    // Setup Physics
+                    this.setupPhysics();
+                    
+                    // Load environment
+                    await this.loadEnvironment();
+                    
+                    // Setup UI
+                    this.setupUI();
+                    this.setupEventListeners();
+                    
+                    // Setup Quality Manager
+                    this.qualityManager = new QualityManager(this.renderer, this.composer);
+                    this.qualityManager.bloomPass = this.bloomPass;
+                    this.qualityManager.ssaoPass = this.ssaoPass;
+                    
+                    // Check VR
+                    await this.checkVRSupport();
+                    
+                    // Start render loop
+                    this.renderer.setAnimationLoop(() => this.render());
+                    
+                    // Hide loading
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('instructions-overlay').style.display = 'flex';
+                    
+                    console.log('✅ Initialization complete');
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    this.showError('Failed to initialize application. Please refresh.');
+                }
+            }
+            
+            setupScene() {
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.FogExp2(0x000000, 0.002);
+            }
+            
+            setupRenderer() {
+                this.renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    alpha: true,
+                    powerPreference: 'high-performance'
+                });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.0;
+                this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+                this.renderer.xr.enabled = true;
+                document.body.appendChild(this.renderer.domElement);
+            }
+            
+            setupCamera() {
+                this.camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                this.camera.position.set(0, 2, 5);
+            }
+            
+            setupLights() {
+                // Hemisphere light
+                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+                hemiLight.position.set(0, 20, 0);
+                this.scene.add(hemiLight);
+                
+                // Main directional light
+                this.mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                this.mainLight.position.set(12, 24, 12);
+                this.mainLight.castShadow = true;
+                this.mainLight.shadow.mapSize.width = 2048;
+                this.mainLight.shadow.mapSize.height = 2048;
+                this.mainLight.shadow.camera.near = 0.5;
+                this.mainLight.shadow.camera.far = 160;
+                this.mainLight.shadow.camera.left = -55;
+                this.mainLight.shadow.camera.right = 55;
+                this.mainLight.shadow.camera.top = 55;
+                this.mainLight.shadow.camera.bottom = -55;
+                this.scene.add(this.mainLight);
+            }
+            
+            setupPostProcessing() {
+                this.composer = new EffectComposer(this.renderer);
+                this.composer.addPass(new RenderPass(this.scene, this.camera));
+                
+                this.ssaoPass = new SSAOPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
+                this.ssaoPass.kernelRadius = 0.8;
+                this.composer.addPass(this.ssaoPass);
+                
+                this.bloomPass = new UnrealBloomPass(
+                    new THREE.Vector2(window.innerWidth, window.innerHeight),
+                    0.4, 0.3, 0.88
+                );
+                this.composer.addPass(this.bloomPass);
+                
+                this.composer.addPass(new OutputPass());
+            }
+            
+            setupLoaders() {
+                this.dracoLoader = new DRACOLoader();
+                this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+                
+                this.gltfLoader = new GLTFLoader();
+                this.gltfLoader.setDRACOLoader(this.dracoLoader);
+            }
+            
+            setupPhysics() {
+                this.physicsWorld = new CANNON.World();
+                this.physicsWorld.gravity.set(0, CONFIG.physics.gravity, 0);
+                this.physicsWorld.broadphase = new CANNON.NaiveBroadphase();
+                this.physicsWorld.solver.iterations = 10;
+                
+                // Player body for walkthrough
+                this.playerBody = new CANNON.Body({
+                    mass: 80,
+                    position: new CANNON.Vec3(1.4, CONFIG.physics.playerHeight, -0.6),
+                    shape: new CANNON.Sphere(CONFIG.physics.playerRadius),
+                    linearDamping: 0.9
+                });
+                this.physicsWorld.addBody(this.playerBody);
+            }
+            
+            async loadEnvironment() {
+                const loader = new RGBELoader();
+                const hdriUrl = this.isDayMode ? CONFIG.hdri.day : CONFIG.hdri.night;
+                
+                return new Promise((resolve, reject) => {
+                    loader.load(hdriUrl, (texture) => {
+                        texture.mapping = THREE.EquirectangularReflectionMapping;
+                        this.scene.background = texture;
+                        this.scene.environment = texture;
+                        resolve();
+                    }, undefined, reject);
+                });
+            }
+            
+            async loadModel(url, index) {
+                try {
+                    const gltf = await this.gltfLoader.loadAsync(url);
+                    gltf.scene.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    return gltf.scene;
+                } catch (error) {
+                    console.warn(`⚠️ Failed to load model ${index}, using fallback`);
+                    Analytics.trackEvent('Error', 'Model Load Failed', `Model ${index}`);
+                    
+                    // Create fallback geometry
+                    const fallbackMaterial = new THREE.MeshStandardMaterial({
+                        color: 0x666666,
+                        wireframe: true
+                    });
+                    const fallbackMesh = new THREE.Mesh(CONFIG.models.fallbackGeometry, fallbackMaterial);
+                    return fallbackMesh;
+                }
+            }
+            
+            setupUI() {
+                // Build scene carousel
+                const carousel = document.getElementById('scene-carousel');
+                CONFIG.scenes.forEach((scene, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'carousel-item glass-panel flex-shrink-0 px-6 py-3 rounded-xl hover:bg-white/20 transition-all duration-300 relative overflow-hidden';
+                    btn.innerHTML = `
+                        <div class="text-sm font-semibold mb-1">${scene.title}</div>
+                        <div class="text-xs text-gray-400">Scene ${index + 1}</div>
+                    `;
+                    btn.setAttribute('tabindex', '0');
+                    btn.setAttribute('aria-label', `Go to ${scene.title}`);
+                    btn.onclick = () => this.goToScene(index);
+                    carousel.appendChild(btn);
+                });
+            }
+            
+            setupEventListeners() {
+                // Start experience
+                document.getElementById('start-experience-btn').addEventListener('click', () => {
+                    document.getElementById('instructions-overlay').style.display = 'none';
+                    document.getElementById('ui-container').style.display = 'block';
+                    this.goToScene(0);
+                    Analytics.trackEvent('App', 'Start', 'User Initiated');
+                });
+                
+                // Day/Night toggle
+                document.getElementById('day-night-toggle').addEventListener('click', () => {
+                    this.toggleDayNight();
+                    Analytics.trackButtonClick('Day/Night Toggle');
+                });
+                
+                // Screenshot
+                document.getElementById('screenshot-btn').addEventListener('click', () => {
+                    this.takeScreenshot();
+                    Analytics.trackButtonClick('Screenshot');
+                });
+                
+                // Settings
+                document.getElementById('settings-btn').addEventListener('click', () => {
+                    const panel = document.getElementById('configurator-panel');
+                    panel.classList.toggle('hidden');
+                    Analytics.trackButtonClick('Settings');
+                });
+                
+                // Fullscreen
+                document.getElementById('fullscreen-btn').addEventListener('click', () => {
+                    this.toggleFullscreen();
+                    Analytics.trackButtonClick('Fullscreen');
+                });
+                
+                // Next scene
+                document.getElementById('next-scene-btn').addEventListener('click', () => {
+                    this.goToScene(this.currentScene + 1);
+                    Analytics.trackButtonClick('Next Scene');
+                });
+                
+                // Configurator controls
+                document.getElementById('light-color-picker').addEventListener('change', (e) => {
+                    this.mainLight.color.set(e.target.value);
+                    Analytics.trackFeatureUse('Light Color Change');
+                });
+                
+                document.getElementById('light-intensity').addEventListener('input', (e) => {
+                    this.mainLight.intensity = parseFloat(e.target.value);
+                    document.getElementById('light-intensity-value').textContent = e.target.value;
+                });
+                
+                document.getElementById('quality-select').addEventListener('change', (e) => {
+                    this.qualityManager.setQuality(e.target.value);
+                });
+                
+                // Custom cursor (desktop only)
+                if (window.innerWidth >= 768) {
+                    const cursor = document.getElementById('custom-cursor');
+                    document.addEventListener('mousemove', (e) => {
+                        cursor.style.left = e.clientX + 'px';
+                        cursor.style.top = e.clientY + 'px';
+                    });
+                }
+                
+                // Window resize
+                window.addEventListener('resize', () => this.onWindowResize());
+                
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight') this.goToScene(this.currentScene + 1);
+                    if (e.key === 'ArrowLeft') this.goToScene(Math.max(0, this.currentScene - 1));
+                    if (e.key === 'f' || e.key === 'F') this.toggleFullscreen();
+                });
+            }
+            
+            async goToScene(sceneIndex) {
+                if (sceneIndex < 0 || sceneIndex >= CONFIG.scenes.length) return;
+                if (sceneIndex === this.currentScene) return;
+                
+                const sceneConfig = CONFIG.scenes[sceneIndex];
+                console.log(`🎬 Transitioning to scene ${sceneIndex}: ${sceneConfig.title}`);
+                
+                this.currentScene = sceneIndex;
+                Analytics.trackSceneChange(sceneIndex, sceneConfig.title);
+                
+                // Update UI
+                document.getElementById('scene-title').textContent = sceneConfig.title;
+                document.getElementById('scene-description').textContent = sceneConfig.description;
+                
+                // Fade out current scene
+                gsap.to(this.renderer.domElement, {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: async () => {
+                        // Clear old models
+                        this.clearModels();
+                        
+                        // Load new models
+                        await this.loadSceneModels(sceneConfig);
+                        
+                        // Setup camera with GSAP animation
+                        this.animateCameraToPosition(sceneConfig.camera);
+                        
+                        // Setup hotspots if any
+                        if (sceneConfig.hotspots) {
+                            this.createHotspots(sceneConfig.hotspots);
+                        }
+                        
+                        // Fade in
+                        gsap.to(this.renderer.domElement, {
+                            opacity: 1,
+                            duration: 0.5
+                        });
+                    }
+                });
+            }
+            
+            async loadSceneModels(sceneConfig) {
+                for (const modelIndex of sceneConfig.models) {
+                    const model = await this.loadModel(CONFIG.models.urls[modelIndex], modelIndex);
+                    this.scene.add(model);
+                    this.loadedModels.push(model);
+                }
+            }
+            
+            clearModels() {
+                this.loadedModels.forEach(model => {
+                    this.scene.remove(model);
+                });
+                this.loadedModels = [];
+                this.clearHotspots();
+            }
+            
+            animateCameraToPosition(cameraConfig) {
+                const { position, lookAt } = cameraConfig;
+                
+                gsap.to(this.camera.position, {
+                    x: position.x,
+                    y: position.y,
+                    z: position.z,
+                    duration: 2,
+                    ease: 'power2.inOut'
+                });
+                
+                // Animate lookAt by tweening a target object
+                const target = new THREE.Vector3();
+                this.camera.getWorldDirection(target);
+                target.add(this.camera.position);
+                
+                gsap.to(target, {
+                    x: lookAt.x,
+                    y: lookAt.y,
+                    z: lookAt.z,
+                    duration: 2,
+                    ease: 'power2.inOut',
+                    onUpdate: () => {
+                        this.camera.lookAt(target);
+                    }
+                });
+            }
+            
+            createHotspots(hotspotsConfig) {
+                const container = document.getElementById('hotspots-container');
+                hotspotsConfig.forEach((hotspot, index) => {
+                    const hotspotEl = document.createElement('button');
+                    hotspotEl.className = 'absolute pointer-events-auto';
+                    hotspotEl.innerHTML = `
+                        <div class="relative">
+                            <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                                <span class="text-black text-xs">📍</span>
+                            </div>
+                            <div class="absolute inset-0 w-6 h-6 bg-white/50 rounded-full hotspot-ping"></div>
+                        </div>
+                    `;
+                    hotspotEl.setAttribute('aria-label', hotspot.title);
+                    hotspotEl.onclick = () => this.showHotspotInfo(hotspot);
+                    container.appendChild(hotspotEl);
+                    
+                    this.hotspots.push({ element: hotspotEl, position: hotspot.position });
+                });
+            }
+            
+            clearHotspots() {
+                const container = document.getElementById('hotspots-container');
+                container.innerHTML = '';
+                this.hotspots = [];
+            }
+            
+            showHotspotInfo(hotspot) {
+                const infoCard = document.getElementById('hotspot-info');
+                document.getElementById('hotspot-title').textContent = hotspot.title;
+                document.getElementById('hotspot-description').textContent = hotspot.description;
+                document.getElementById('hotspot-details').textContent = hotspot.details;
+                infoCard.classList.remove('hidden');
+                
+                // Zoom camera to hotspot with GSAP
+                this.animateCameraToPosition({
+                    position: { 
+                        x: hotspot.position.x + 0.5,
+                        y: hotspot.position.y,
+                        z: hotspot.position.z + 0.5
+                    },
+                    lookAt: hotspot.position
+                });
+                
+                Analytics.trackFeatureUse(`Hotspot: ${hotspot.title}`);
+            }
+            
+            updateHotspots() {
+                this.hotspots.forEach(({ element, position }) => {
+                    const vector = new THREE.Vector3(position.x, position.y, position.z);
+                    vector.project(this.camera);
+                    
+                    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+                    
+                    element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+                    element.style.display = vector.z < 1 ? 'block' : 'none';
+                });
+            }
+            
+            async toggleDayNight() {
+                this.isDayMode = !this.isDayMode;
+                const icon = document.getElementById('day-night-icon');
+                const text = document.getElementById('day-night-toggle').querySelector('span:last-child');
+                
+                icon.textContent = this.isDayMode ? '🌞' : '🌙';
+                if (text) text.textContent = this.isDayMode ? 'Day' : 'Night';
+                
+                // Transition HDRI with fade
+                gsap.to(this.scene.background, {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: async () => {
+                        await this.loadEnvironment();
+                        gsap.to(this.scene.background, { opacity: 1, duration: 0.5 });
+                    }
+                });
+                
+                Analytics.trackFeatureUse(`${this.isDayMode ? 'Day' : 'Night'} Mode`);
+            }
+            
+            takeScreenshot() {
+                // Hide UI
+                document.getElementById('ui-container').style.display = 'none';
+                
+                // Render clean frame
+                this.renderer.render(this.scene, this.camera);
+                
+                // Capture
+                this.renderer.domElement.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `c2w2-runway-${Date.now()}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    // Show UI again
+                    document.getElementById('ui-container').style.display = 'block';
+                    
+                    // Show feedback
+                    alert('Screenshot captured! 📸');
+                });
+                
+                Analytics.trackFeatureUse('Screenshot Capture');
+            }
+            
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+            
+            async checkVRSupport() {
+                if (navigator.xr) {
+                    const isSupported = await navigator.xr.isSessionSupported('immersive-vr');
+                    if (isSupported) {
+                        const vrButton = VRButton.createButton(this.renderer);
+                        document.body.appendChild(vrButton);
+                        this.isVR = true;
+                        console.log('✅ VR Support detected');
+                    }
+                }
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.composer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            render() {
+                // Update quality counter
+                this.qualityManager.countFrame();
+                
+                // Update physics if in walkthrough mode
+                if (this.currentScene === 5 && this.physicsWorld) {
+                    this.physicsWorld.step(1 / 60);
+                }
+                
+                // Update hotspot positions
+                if (this.hotspots.length > 0) {
+                    this.updateHotspots();
+                }
+                
+                // Render
+                if (this.renderer.xr.isPresenting) {
+                    this.renderer.render(this.scene, this.camera);
+                } else {
+                    this.composer.render();
+                }
+            }
+            
+            showError(message) {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">⚠️</div>
+                        <p class="text-xl font-bold mb-2">Error</p>
+                        <p class="text-gray-400">${message}</p>
+                        <button onclick="location.reload()" 
+                                class="mt-6 bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200">
+                            Reload
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // ============================================================================
+        // START APPLICATION
+        // ============================================================================
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            new VirtualRunwayApp();
+        });
+        
+    </script>
+</body>
+</html>
