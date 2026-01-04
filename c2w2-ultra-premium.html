@@ -64,6 +64,12 @@
         .carousel-container {
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+
+        .carousel-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
         }
 
         .carousel-item {
@@ -1096,13 +1102,16 @@
                     enableRotate: true
                 });
 
-                this.setupToggles([
+                const scene1Config = [
                     { name: 'Surrounding', id: 'surrounding' },
                     { name: 'Transportation', id: 'transportation' },
                     { name: 'Units', id: 'units' }
-                ]);
+                ];
 
-                this.handleToggleClick(0);
+                this.setupToggles(scene1Config);
+
+                // Auto-activate first option (Surrounding)
+                this.handleToggleClick(0, scene1Config);
             }
 
             async scene2_DesignOptions() {
