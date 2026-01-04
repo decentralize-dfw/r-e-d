@@ -3,11 +3,11 @@
  */
 
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { APP_CONFIG } from '@/config/app.config';
 
 export class SceneManager {
@@ -136,24 +136,24 @@ export class SceneManager {
   }
 
   async loadEnvironment(): Promise<void> {
-    const { RGBELoader } = await import('three/examples/jsm/loaders/RGBELoader');
+    const { RGBELoader } = await import('three/addons/loaders/RGBELoader.js');
     
     return new Promise((resolve, reject) => {
       const hdriURL = APP_CONFIG.assets.hdri;
       
       new RGBELoader().load(
         hdriURL,
-        (texture) => {
+        (texture: THREE.Texture) => {
           texture.mapping = THREE.EquirectangularReflectionMapping;
           this.scene.background = texture;
           this.scene.environment = this.pmremGenerator.fromEquirectangular(texture).texture;
           this.pmremGenerator.dispose();
           texture.dispose();
-          this.scene.environmentIntensity = APP_CONFIG.lighting.environmentIntensity;
+          (this.scene as any).environmentIntensity = APP_CONFIG.lighting.environmentIntensity;
           resolve();
         },
         undefined,
-        (error) => {
+        (error: unknown) => {
           console.error('Error loading environment:', error);
           reject(error);
         }

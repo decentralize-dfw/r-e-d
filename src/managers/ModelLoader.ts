@@ -3,9 +3,9 @@
  */
 
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module';
+import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import type { LoadedModel, ModelConfig } from '@/types';
 
 export class ModelLoader {
@@ -33,7 +33,7 @@ export class ModelLoader {
     return new Promise((resolve, reject) => {
       this.gltfLoader.load(
         url,
-        (gltf) => {
+        (gltf: GLTF) => {
           const modelScene = gltf.scene;
           
           // Apply transformations
@@ -59,13 +59,13 @@ export class ModelLoader {
           let mixer: THREE.AnimationMixer | null = null;
           if (gltf.animations && gltf.animations.length > 0) {
             mixer = new THREE.AnimationMixer(modelScene);
-            gltf.animations.forEach((clip) => {
+            gltf.animations.forEach((clip: THREE.AnimationClip) => {
               mixer!.clipAction(clip).play();
             });
           }
           
           // Configure materials and shadows
-          modelScene.traverse((child) => {
+          modelScene.traverse((child: THREE.Object3D) => {
             if (child instanceof THREE.Mesh) {
               child.castShadow = true;
               child.receiveShadow = true;
@@ -90,7 +90,7 @@ export class ModelLoader {
           resolve(loadedModel);
         },
         undefined,
-        (error) => {
+        (error: unknown) => {
           console.error(`Error loading model ${url}:`, error);
           reject(error);
         }
@@ -102,11 +102,11 @@ export class ModelLoader {
     return new Promise((resolve, reject) => {
       this.gltfLoader.load(
         url,
-        (gltf) => {
+        (gltf: GLTF) => {
           const modelScene = gltf.scene;
           modelScene.visible = false; // Invisible
           
-          modelScene.traverse((child) => {
+          modelScene.traverse((child: THREE.Object3D) => {
             if (child instanceof THREE.Mesh) {
               // Make invisible with double-sided collision
               child.material = new THREE.MeshBasicMaterial({
@@ -126,7 +126,7 @@ export class ModelLoader {
           resolve(loadedModel);
         },
         undefined,
-        (error) => {
+        (error: unknown) => {
           console.error(`Error loading collider model ${url}:`, error);
           reject(error);
         }

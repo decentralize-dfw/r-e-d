@@ -3,7 +3,7 @@
  */
 
 import * as THREE from 'three';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { APP_CONFIG } from '@/config/app.config';
 import type { KeyState } from '@/types';
 

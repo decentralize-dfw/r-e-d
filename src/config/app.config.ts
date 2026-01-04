@@ -3,6 +3,13 @@
  * Central configuration for the C2W2 Virtual Runway Premium Edition
  */
 
+import type { SceneConfig as SceneConfigType } from '@/types';
+
+type SceneConfig = Omit<SceneConfigType, 'name' | 'description'> & {
+  name: string;
+  description: string;
+};
+
 export const APP_CONFIG = {
   title: 'C2W2 VIRTUAL RUNWAY BY DFW',
   version: '1.0.0-premium',
@@ -221,7 +228,7 @@ export const APP_CONFIG = {
       controls: 'pointerlock',
       cameraPosition: { x: 1.4, y: 1.6, z: -0.6 },
     },
-  },
+  } as Record<number, SceneConfig>,
   
   // UI Theme
   theme: {

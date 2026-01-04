@@ -3,8 +3,8 @@
  */
 
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { APP_CONFIG } from '@/config/app.config';
 import type { CameraConfig } from '@/types';
 
@@ -162,11 +162,13 @@ export class CameraManager {
       orthoCamera.right = (frustumSize * aspect) / 2;
       orthoCamera.top = frustumSize / 2;
       orthoCamera.bottom = frustumSize / -2;
+      orthoCamera.updateProjectionMatrix();
     } else {
-      (this.activeCamera as THREE.PerspectiveCamera).fov = config.fov || 75;
+      const perspCamera = this.activeCamera as THREE.PerspectiveCamera;
+      perspCamera.fov = config.fov || 75;
+      perspCamera.updateProjectionMatrix();
     }
     
-    this.activeCamera.updateProjectionMatrix();
     this.orbitControls.enabled = true;
     this.orbitControls.update();
   }
@@ -179,8 +181,9 @@ export class CameraManager {
     if (isVR) {
       this.playerRig.position.set(pos.x, pos.y, pos.z);
     } else {
-      (this.activeCamera as THREE.PerspectiveCamera).fov = fov || 75;
-      this.activeCamera.updateProjectionMatrix();
+      const perspCamera = this.activeCamera as THREE.PerspectiveCamera;
+      perspCamera.fov = fov || 75;
+      perspCamera.updateProjectionMatrix();
       
       this.pointerLockControls.getObject().position.set(pos.x, pos.y, pos.z);
       this.pointerLockControls.lock();

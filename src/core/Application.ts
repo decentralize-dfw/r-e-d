@@ -10,8 +10,8 @@ import { AudioManager } from '@/managers/AudioManager';
 import { PhysicsManager } from '@/managers/PhysicsManager';
 import { UIManager } from '@/managers/UIManager';
 import { SequenceManager } from '@/managers/SequenceManager';
-import { VRButton } from 'three/examples/jsm/webxr/VRButton';
-import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
 export class Application {
   private sceneManager: SceneManager;
