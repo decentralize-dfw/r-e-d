@@ -1,0 +1,86 @@
+Overview
+This code builds an interactive 3D Architectural Demo using the Three.js library. It functions like a guided story or a slideshow. The experience is controlled by a main function called runSequence(), which tracks which "chapter" the user is in. As the user clicks the "Start" or "Next" button, the code clears the old models from memory and loads new ones, changing the camera style and interaction mode to fit the context.
+
+1. Initialization (The Setup)
+Before the user sees anything, the init() function runs. It sets up the digital stage:
+
+The World: It creates the 3D scene, adds lighting (a sun and ambient light), and loads an HDRI background (a 360-degree sky image) to make reflections look realistic.
+
+The Cameras: It creates two different "eyes" for the user:
+
+An Orthographic Camera: Used for "God-view" or isometric model views (no depth distortion).
+
+A Perspective Camera: Used for realistic, human-eye views (for the interior walkthrough).
+
+VR Check: It checks if the user is on a VR headset. If so, it sets up special hand controllers; if not, it prepares standard mouse/keyboard controls.
+
+2. Scene 0: Pre-Start (The Hook)
+This is what the user sees while waiting to click "Start."
+
+Visuals: The code loads a city model and a conceptual "foam" model.
+
+Camera Behavior: The camera is set to Orthographic. It is placed high up and set to Auto-Rotate. The user cannot control it yet; it just spins slowly to show off the exterior of the project.
+
+Audio: Ambient background sound begins playing.
+
+3. Scene 1: Concept & Context
+Once the user clicks "Start," the experience moves to Scene 1.
+
+Change: The camera zooms in slightly but remains in the isometric view.
+
+Interaction: New buttons appear on the screen: "Surrounding," "Transportation," and "Units."
+
+Logic: Clicking these buttons doesn't change the 3D model. Instead, it triggers the handleVariantClick function, which updates the HTML panels on the left and right sides of the screen to display text information about the architectural concepts.
+
+4. Scene 2: Design Options (A/B Testing)
+The user clicks "Next," and the code performs a "swap."
+
+Loading: The code calls unloadSceneModels() to remove the previous city models from memory (to keep the app fast). It then loads four new model parts.
+
+Interaction: Two option buttons appear.
+
+Logic: This scene demonstrates different design choices (like changing the facade of the building).
+
+Option 1: Hides models 3 & 5, shows models 1 & 4.
+
+Option 2: Hides models 1 & 4, shows models 3 & 5.
+
+Control: The user is given Orbit Controls, allowing them to click and drag to rotate around the building freely to compare the options.
+
+5. Scene 3: Structural View (Orbit)
+Moving to the next scene, the focus shifts to the structure.
+
+Visuals: The code loads a "Ghost" (transparent) version of the building and an internal section model.
+
+Camera: The camera moves to a specific angle to highlight the internal layout.
+
+Control: The user retains full orbital control to inspect the architecture from all angles.
+
+6. Scene 4: Interior Tour (Static Views)
+Now the experience goes inside.
+
+Camera Switch: The code switches from the technical Orthographic camera to the realistic Perspective camera.
+
+Visuals: A high-detail interior model is loaded.
+
+Interaction: A menu with room names appears (Salon, Bathroom, Bedroom, etc.).
+
+Logic: When the user clicks a room name, the camera instantly "teleports" to specific coordinates defined in the code. This functions like a curated photo tour, ensuring the user sees the room from the best possible artistic angles.
+
+7. Scene 5: The Walkthrough (FPS Mode)
+This is the climax of the demo, turning it into a video game.
+
+Loading: The code loads the visible interior model again, but it also loads an invisible "Collider" model.
+
+Controls: The control mode changes to Pointer Lock. The mouse controls the view, and the keyboard (W, A, S, D) controls movement.
+
+Physics Engine: A custom function called updatePlayer runs constantly:
+
+Gravity: It shoots an invisible laser (Raycaster) downwards. If it doesn't hit the invisible floor, the user falls.
+
+Collision: As the user moves, it shoots lasers horizontally. If the user gets too close to a wall, the code pushes them back, preventing them from walking through walls.
+
+VR: If the user is in VR, this scene handles teleportation or joystick movement logic.
+
+8. Scene 6: Restart
+Finally, when the experience ends, the code simply reloads the browser page to reset everything to the beginning.
