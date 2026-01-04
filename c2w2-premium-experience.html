@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>C2W2 Virtual Runway by DFW - Premium Edition</title>
+    <title>C2W2 Virtual Runway - Premium Edition</title>
 
     <style>
         :root {
             --fg: #ffffff;
             --bg: #000000;
-            --muted: #9aa0a6;
-            --accent: #e5e5e5;
             --panel-bg: rgba(10, 10, 15, 0.75);
             --panel-border: rgba(255, 255, 255, 0.08);
             --panel-blur: 20px;
@@ -41,7 +39,7 @@
             left: 0;
         }
 
-        /* === LOADING SYSTEM === */
+        /* Loading */
         #loading {
             position: fixed;
             inset: 0;
@@ -74,11 +72,18 @@
         }
 
         .loading-text {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 300;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .loading-progress {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px;
         }
 
         #backgroundImg {
@@ -108,7 +113,7 @@
             backdrop-filter: blur(10px);
         }
 
-        /* === INSTRUCTIONS === */
+        /* Instructions */
         #instructions {
             position: fixed;
             top: 50%;
@@ -142,11 +147,11 @@
 
         #instructions p {
             font-size: 14px;
-            color: var(--muted);
+            color: rgba(255, 255, 255, 0.6);
             letter-spacing: 1px;
         }
 
-        /* === CONTROL BUTTONS === */
+        /* Control Buttons */
         .control-btn {
             backdrop-filter: blur(var(--panel-blur));
             background: var(--panel-bg);
@@ -161,6 +166,7 @@
             transition: all 0.3s var(--transition-smooth);
             font-family: inherit;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .control-btn:hover {
@@ -198,38 +204,28 @@
             display: none;
         }
 
-        .model-toggle-btn {
+        #modelToggleContainer {
             position: fixed;
             top: 20px;
+            left: 80px;
+            right: 20px;
             z-index: 10;
             display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        #modelToggleContainer.visible {
+            display: flex;
+        }
+
+        .model-toggle-btn {
             padding: 10px 16px;
             font-size: 12px;
         }
 
-        #modelToggleBtn1 { left: 80px; }
-        #modelToggleBtn2 { left: 160px; }
-        #modelToggleBtn3 { left: 240px; }
-        #modelToggleBtn4 { left: 320px; }
-        #modelToggleBtn5 { left: 400px; }
-        #modelToggleBtn6 { left: 480px; }
-
-        /* === INFO BUTTONS === */
-        .info-btn {
-            position: fixed;
-            top: 20px;
-            z-index: 10;
-            padding: 12px 24px;
-            font-size: 13px;
-        }
-
-        #fullscreenButton { right: 420px; }
-        #projectInfoButton { right: 320px; }
-        #studioInfoButton { right: 220px; }
-        #creatorsNoteButton { right: 110px; }
-        #hintButton { right: 20px; }
-
-        /* === DESCRIPTION PANEL === */
+        /* Description */
         #description {
             position: fixed;
             bottom: 60px;
@@ -249,7 +245,7 @@
             transition: all 0.4s var(--transition-smooth);
         }
 
-        /* === HTML PANELS === */
+        /* HTML Panels */
         #leftHtmlPanel, #rightHtmlPanel {
             position: fixed;
             width: 280px;
@@ -308,88 +304,10 @@
         }
 
         #leftHtmlPanel p, #rightHtmlPanel p {
-            color: var(--accent);
+            color: rgba(255, 255, 255, 0.8);
             margin: 10px 0;
         }
 
-        /* === INFO PANELS === */
-        .info-panel {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 400px;
-            max-height: 80vh;
-            backdrop-filter: blur(var(--panel-blur));
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 32px;
-            z-index: 20;
-            overflow-y: auto;
-            display: none;
-            transition: all 0.4s var(--transition-bounce);
-            transform: translateX(450px);
-        }
-
-        .info-panel.visible {
-            display: block;
-            transform: translateX(0);
-        }
-
-        .info-panel::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .info-panel::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: none;
-            border: none;
-            color: var(--fg);
-            font-size: 24px;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: background 0.2s ease;
-        }
-
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .info-panel p {
-            margin: 16px 0;
-            line-height: 1.7;
-            color: var(--accent);
-        }
-
-        .info-panel strong {
-            color: var(--fg);
-            font-weight: 600;
-        }
-
-        .info-panel a {
-            color: #88aaff;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .info-panel a:hover {
-            color: #aaccff;
-            text-decoration: underline;
-        }
-
-        /* === UTILITY === */
         .hidden { display: none !important; }
     </style>
 
@@ -407,6 +325,7 @@
     <div id="loading">
         <div class="loading-spinner"></div>
         <div class="loading-text">Loading Experience</div>
+        <div class="loading-progress" id="loadingProgress">Preparing assets...</div>
     </div>
 
     <!-- Background Image -->
@@ -425,19 +344,14 @@
     <button id="startButton" class="control-btn">Start Experience</button>
 
     <div id="modelLabel">Model</div>
-    <button id="modelToggleBtn1" class="control-btn model-toggle-btn">Option 1</button>
-    <button id="modelToggleBtn2" class="control-btn model-toggle-btn">Option 2</button>
-    <button id="modelToggleBtn3" class="control-btn model-toggle-btn">Option 3</button>
-    <button id="modelToggleBtn4" class="control-btn model-toggle-btn">Option 4</button>
-    <button id="modelToggleBtn5" class="control-btn model-toggle-btn">Option 5</button>
-    <button id="modelToggleBtn6" class="control-btn model-toggle-btn">Option 6</button>
-
-    <!-- Info Buttons -->
-    <button id="fullscreenButton" class="control-btn info-btn">Fullscreen</button>
-    <button id="projectInfoButton" class="control-btn info-btn">Project Info</button>
-    <button id="studioInfoButton" class="control-btn info-btn">Studio Info</button>
-    <button id="creatorsNoteButton" class="control-btn info-btn">Creator's Note</button>
-    <button id="hintButton" class="control-btn info-btn">Hints</button>
+    <div id="modelToggleContainer">
+        <button id="modelToggleBtn1" class="control-btn model-toggle-btn">Option 1</button>
+        <button id="modelToggleBtn2" class="control-btn model-toggle-btn">Option 2</button>
+        <button id="modelToggleBtn3" class="control-btn model-toggle-btn">Option 3</button>
+        <button id="modelToggleBtn4" class="control-btn model-toggle-btn">Option 4</button>
+        <button id="modelToggleBtn5" class="control-btn model-toggle-btn">Option 5</button>
+        <button id="modelToggleBtn6" class="control-btn model-toggle-btn">Option 6</button>
+    </div>
 
     <!-- Description -->
     <div id="description"></div>
@@ -448,185 +362,90 @@
 
     <!-- HTML Content Store -->
     <div id="htmlContentStore" style="display: none;">
-        <!-- Scene 0 -->
         <div id="html_scene0_left">
             <h3>Welcome</h3>
             <p>Auto-rotating view of the architectural concept.</p>
-            <p>This is the initial presentation mode showcasing the overall design.</p>
         </div>
         <div id="html_scene0_right">
             <h3>Overview</h3>
-            <p>Observing the complete composition from an isometric perspective.</p>
+            <p>Isometric presentation of the complete design.</p>
         </div>
 
-        <!-- Scene 1 - Surrounding -->
         <div id="html_scene1_opt1_left">
-            <h3>Surrounding Context</h3>
-            <p>Explore the neighborhood and local environment surrounding the development.</p>
-            <p>Integration with existing urban fabric.</p>
+            <h3>Surrounding</h3>
+            <p>Neighborhood and urban context.</p>
         </div>
         <div id="html_scene1_opt1_right">
             <h3>Urban Integration</h3>
-            <p>Contextual analysis of the site location.</p>
+            <p>Site location and environment.</p>
         </div>
 
-        <!-- Scene 1 - Transportation -->
         <div id="html_scene1_opt2_left">
-            <h3>Transportation Access</h3>
-            <p>Metro: 5 minutes</p>
-            <p>Shopping Center: 17 minutes</p>
-            <p>City Center: 10 minutes</p>
+            <h3>Transportation</h3>
+            <p>Metro: 5 min | Shopping: 17 min | Center: 10 min</p>
         </div>
         <div id="html_scene1_opt2_right">
             <h3>Connectivity</h3>
-            <p>Excellent public transport links and road access.</p>
+            <p>Excellent public transport access.</p>
         </div>
 
-        <!-- Scene 1 - Units -->
         <div id="html_scene1_opt3_left">
-            <h3>Unit Configuration</h3>
-            <p>Variety of apartment layouts available.</p>
-            <p>From studios to 4-bedroom residences.</p>
+            <h3>Units</h3>
+            <p>Variety of apartment configurations.</p>
         </div>
         <div id="html_scene1_opt3_right">
             <h3>Living Spaces</h3>
-            <p>Flexible floor plans designed for modern living.</p>
+            <p>Flexible floor plans for modern living.</p>
         </div>
 
-        <!-- Scene 2 - Option 1 -->
         <div id="html_scene2_opt1_left">
             <h3>Design Option 1</h3>
-            <p>White facade with optimized structure.</p>
-            <p>Emphasizes clean, modern aesthetics.</p>
+            <p>White facade with clean aesthetics.</p>
         </div>
         <div id="html_scene2_opt1_right">
             <h3>Material Palette</h3>
-            <p>High-quality finishes and sustainable materials.</p>
+            <p>High-quality finishes.</p>
         </div>
 
-        <!-- Scene 2 - Option 2 -->
         <div id="html_scene2_opt2_left">
             <h3>Design Option 2</h3>
-            <p>Metal facade with contemporary expression.</p>
-            <p>Bold architectural statement.</p>
+            <p>Metal facade with bold expression.</p>
         </div>
         <div id="html_scene2_opt2_right">
-            <h3>Alternative Approach</h3>
-            <p>Exploring different material combinations.</p>
+            <h3>Alternative</h3>
+            <p>Different material approach.</p>
         </div>
 
-        <!-- Scene 3 -->
         <div id="html_scene3_left">
-            <h3>Structural Analysis</h3>
+            <h3>Structure</h3>
             <p>Ghost view revealing internal organization.</p>
-            <p>Transparency shows building systems and circulation.</p>
         </div>
         <div id="html_scene3_right">
-            <h3>Technical Details</h3>
-            <p>Examine construction logic and spatial arrangements.</p>
+            <h3>Technical</h3>
+            <p>Building systems and circulation.</p>
         </div>
 
-        <!-- Scene 4 - Room Views -->
-        <div id="html_scene4_cam1_left">
-            <h3>Living Room</h3>
-            <p>Main living space with panoramic views.</p>
-            <p>Open-plan design for modern lifestyle.</p>
-        </div>
-        <div id="html_scene4_cam1_right">
-            <h3>Salon Details</h3>
-            <p>Natural light and spatial quality.</p>
-        </div>
+        <div id="html_scene4_cam1_left"><h3>Living Room</h3><p>Main living space.</p></div>
+        <div id="html_scene4_cam1_right"><h3>Salon</h3><p>Natural light.</p></div>
+        <div id="html_scene4_cam2_left"><h3>Kitchen</h3><p>Premium appliances.</p></div>
+        <div id="html_scene4_cam2_right"><h3>Culinary</h3><p>Functional design.</p></div>
+        <div id="html_scene4_cam3_left"><h3>Master Bedroom</h3><p>Private space.</p></div>
+        <div id="html_scene4_cam3_right"><h3>Rest</h3><p>Comfort.</p></div>
+        <div id="html_scene4_cam4_left"><h3>Master Bath</h3><p>Spa amenities.</p></div>
+        <div id="html_scene4_cam4_right"><h3>Wellness</h3><p>Premium fixtures.</p></div>
+        <div id="html_scene4_cam5_left"><h3>Second Bedroom</h3><p>Flexible space.</p></div>
+        <div id="html_scene4_cam5_right"><h3>Additional</h3><p>Versatile.</p></div>
+        <div id="html_scene4_cam6_left"><h3>Second Bath</h3><p>Full amenities.</p></div>
+        <div id="html_scene4_cam6_right"><h3>Ensuite</h3><p>Complete.</p></div>
 
-        <div id="html_scene4_cam2_left">
-            <h3>Kitchen</h3>
-            <p>Fully equipped with premium appliances.</p>
-        </div>
-        <div id="html_scene4_cam2_right">
-            <h3>Culinary Space</h3>
-            <p>Designed for functionality and style.</p>
-        </div>
-
-        <div id="html_scene4_cam3_left">
-            <h3>Master Bedroom</h3>
-            <p>Private retreat with ample space.</p>
-        </div>
-        <div id="html_scene4_cam3_right">
-            <h3>Rest & Relaxation</h3>
-            <p>Comfort and privacy combined.</p>
-        </div>
-
-        <div id="html_scene4_cam4_left">
-            <h3>Master Bathroom</h3>
-            <p>Spa-like amenities and finishes.</p>
-        </div>
-        <div id="html_scene4_cam4_right">
-            <h3>Wellness Space</h3>
-            <p>Premium fixtures throughout.</p>
-        </div>
-
-        <div id="html_scene4_cam5_left">
-            <h3>Second Bedroom</h3>
-            <p>Flexible space for guests or family.</p>
-        </div>
-        <div id="html_scene4_cam5_right">
-            <h3>Additional Space</h3>
-            <p>Versatile room configuration.</p>
-        </div>
-
-        <div id="html_scene4_cam6_left">
-            <h3>Second Bathroom</h3>
-            <p>Full amenities for convenience.</p>
-        </div>
-        <div id="html_scene4_cam6_right">
-            <h3>Ensuite Comfort</h3>
-            <p>Complete facilities.</p>
-        </div>
-
-        <!-- Scene 5 -->
         <div id="html_scene5_left">
             <h3>Free Exploration</h3>
-            <p><strong>Desktop:</strong> W, A, S, D to move. Mouse to look. Shift to sprint. Space to jump.</p>
-            <p><strong>VR:</strong> Use thumbsticks to move and turn.</p>
+            <p>W/A/S/D to move. Shift: sprint. Space: jump.</p>
         </div>
         <div id="html_scene5_right">
-            <h3>Walkthrough Mode</h3>
-            <p>Explore the interior at your own pace.</p>
-            <p>Experience the space as if you were there.</p>
+            <h3>Walkthrough</h3>
+            <p>Explore at your own pace.</p>
         </div>
-    </div>
-
-    <!-- Info Panels -->
-    <div id="projectInfoPanel" class="info-panel">
-        <button class="close-btn" onclick="closePanel('projectInfoPanel')">×</button>
-        <p><strong>C2W2 Virtual Runway</strong></p>
-        <p>An immersive architectural visualization experience demonstrating the future of real estate presentation.</p>
-        <p>This project showcases how interactive 3D technology can transform the way we explore and understand architectural spaces.</p>
-        <p><strong>Features:</strong></p>
-        <p>• Multiple viewing modes<br>• Interactive camera controls<br>• VR support<br>• Real-time 3D rendering<br>• Cinematic presentations</p>
-    </div>
-
-    <div id="studioInfoPanel" class="info-panel">
-        <button class="close-btn" onclick="closePanel('studioInfoPanel')">×</button>
-        <p><strong>Digital Forgery Workshop</strong></p>
-        <p>A creative design studio specializing in immersive digital experiences, architectural visualization, and interactive web-based 3D applications.</p>
-        <p>We blend cutting-edge technology with artistic vision to create compelling digital narratives.</p>
-    </div>
-
-    <div id="hintPanel" class="info-panel">
-        <button class="close-btn" onclick="closePanel('hintPanel')">×</button>
-        <p><strong>Navigation Hints</strong></p>
-        <p><strong>In Orbit Mode:</strong><br>• Click and drag to rotate view<br>• Scroll to zoom<br>• Use buttons to switch between scenes</p>
-        <p><strong>In Walkthrough Mode:</strong><br>• W, A, S, D keys to move<br>• Mouse to look around<br>• Shift to sprint<br>• Space to jump</p>
-        <p><strong>General:</strong><br>• F key for fullscreen<br>• Click buttons to switch views<br>• Explore at your own pace</p>
-    </div>
-
-    <div id="creatorsNotePanel" class="info-panel">
-        <button class="close-btn" onclick="closePanel('creatorsNotePanel')">×</button>
-        <p><strong>Creator's Note</strong></p>
-        <p>C2W2 Virtual Runway, 2025</p>
-        <p>This experience represents a new paradigm in architectural presentation—moving beyond static renderings to fully interactive, explorable spaces.</p>
-        <p>Designed for both desktop and VR, this project demonstrates how immersive technology can enhance our understanding of architectural design.</p>
-        <p>Thank you for experiencing this vision of the future.</p>
     </div>
 
     <script type="module">
@@ -661,16 +480,12 @@
             ],
             hdri: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr',
             dracoPath: 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/',
-
-            // Physics
             playerHeight: 1.6,
             playerRadius: 0.4,
             baseMoveSpeed: 20,
             sprintMultiplier: 4,
             jumpVelocity: 6,
             gravity: -20,
-
-            // Camera
             defaultFOV: 75,
             orthoFrustumSize: 40
         };
@@ -685,23 +500,18 @@
         let gltfLoader, audioListener;
 
         let currentScene = -1;
-        let loadedModels = [];
+        let allModels = {}; // Store all pre-loaded models by index
         let colliderMeshes = [];
         let experienceStarted = false;
         let vrActive = false;
         let vrControllers = [];
 
-        // Player state
         let playerVelocity = new THREE.Vector3();
         let playerOnFloor = false;
         let currentMoveSpeed = CONFIG.baseMoveSpeed;
         let keys = {
-            forward: false,
-            backward: false,
-            left: false,
-            right: false,
-            jump: false,
-            sprint: false
+            forward: false, backward: false, left: false, right: false,
+            jump: false, sprint: false
         };
 
         let raycaster = new THREE.Raycaster();
@@ -712,11 +522,13 @@
         // ============================================
         const DOM = {
             loading: document.getElementById('loading'),
+            loadingProgress: document.getElementById('loadingProgress'),
             sceneLoading: document.getElementById('sceneLoadingIndicator'),
             backgroundImg: document.getElementById('backgroundImg'),
             instructions: document.getElementById('instructions'),
             startButton: document.getElementById('startButton'),
             modelLabel: document.getElementById('modelLabel'),
+            modelToggleContainer: document.getElementById('modelToggleContainer'),
             modelToggles: [
                 document.getElementById('modelToggleBtn1'),
                 document.getElementById('modelToggleBtn2'),
@@ -734,9 +546,8 @@
         // INITIALIZATION
         // ============================================
         async function init() {
-            console.log('🚀 Initializing C2W2 Premium Experience...');
+            console.log('🚀 Initializing...');
 
-            // Setup Three.js basics
             setupRenderer();
             setupCameras();
             setupControls();
@@ -744,24 +555,19 @@
             setupPostProcessing();
             setupLoaders();
 
-            // Load environment
             await loadHDRI();
+            await preloadAllModels(); // NEW: Load everything at start
 
-            // Check VR capability
             await checkVRSupport();
-
-            // Setup event listeners
             setupEventListeners();
 
-            // Start render loop
             renderer.setAnimationLoop(animate);
 
-            // Hide loading screen
             DOM.loading.classList.add('hidden');
             DOM.backgroundImg.style.display = 'block';
             DOM.instructions.classList.add('visible');
 
-            console.log('✅ Initialization complete');
+            console.log('✅ Ready');
         }
 
         function setupRenderer() {
@@ -776,7 +582,7 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.0;
+            renderer.toneMappingExposure = 1.1;
             renderer.outputColorSpace = THREE.SRGBColorSpace;
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
@@ -789,15 +595,8 @@
         function setupCameras() {
             const aspect = window.innerWidth / window.innerHeight;
 
-            // Perspective camera
-            perspectiveCamera = new THREE.PerspectiveCamera(
-                CONFIG.defaultFOV,
-                aspect,
-                0.1,
-                1000
-            );
+            perspectiveCamera = new THREE.PerspectiveCamera(CONFIG.defaultFOV, aspect, 0.1, 1000);
 
-            // Orthographic camera
             const frustum = CONFIG.orthoFrustumSize;
             orthographicCamera = new THREE.OrthographicCamera(
                 frustum * aspect / -2,
@@ -808,39 +607,42 @@
                 1000
             );
 
-            // Start with perspective
             camera = perspectiveCamera;
 
-            // Setup player rig
             scene.add(playerRig);
             playerRig.add(camera);
 
-            // Audio listener
             audioListener = new THREE.AudioListener();
             camera.add(audioListener);
         }
 
         function setupControls() {
-            // Orbit controls
             orbitControls = new OrbitControls(camera, renderer.domElement);
             orbitControls.enabled = false;
             orbitControls.enableDamping = true;
             orbitControls.dampingFactor = 0.05;
             orbitControls.target.set(0, 1, 0);
 
-            // Pointer lock controls
+            // Stop auto-rotate when user interacts
+            orbitControls.addEventListener('start', () => {
+                if (orbitControls.autoRotate) {
+                    orbitControls.autoRotate = false;
+                    console.log('Auto-rotate disabled by user interaction');
+                }
+            });
+
             pointerLockControls = new PointerLockControls(perspectiveCamera, renderer.domElement);
             scene.add(pointerLockControls.getObject());
         }
 
         function setupLights() {
-            // Hemisphere light
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
+            // Neutral hemisphere light (no pink tint)
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.3);
             hemiLight.position.set(0, 20, 0);
             scene.add(hemiLight);
 
-            // Directional light (sun)
-            const sunLight = new THREE.DirectionalLight(0xffffff, 3.6);
+            // Sun light - neutral white for realistic reflections
+            const sunLight = new THREE.DirectionalLight(0xfff9f0, 2.8);
             sunLight.position.set(12, 24, 12);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.set(2048, 2048);
@@ -853,68 +655,115 @@
             sunLight.shadow.bias = -0.0001;
             sunLight.shadow.normalBias = 0.025;
             scene.add(sunLight);
+
+            // Subtle fill light
+            const fillLight = new THREE.DirectionalLight(0xe8f4ff, 0.4);
+            fillLight.position.set(-8, 10, -8);
+            scene.add(fillLight);
         }
 
         function setupPostProcessing() {
             composer = new EffectComposer(renderer);
 
-            // Render pass
             const renderPass = new RenderPass(scene, camera);
             composer.addPass(renderPass);
 
-            // SSAO
             const ssaoPass = new SSAOPass(scene, camera, window.innerWidth, window.innerHeight);
             ssaoPass.kernelRadius = 0.8;
             ssaoPass.minDistance = 0.001;
             ssaoPass.maxDistance = 0.05;
             composer.addPass(ssaoPass);
 
-            // Bloom
             const bloomPass = new UnrealBloomPass(
                 new THREE.Vector2(window.innerWidth, window.innerHeight),
-                0.4,  // strength
-                0.3,  // radius
-                0.88  // threshold
+                0.3, 0.25, 0.9
             );
             composer.addPass(bloomPass);
 
-            // Output
             const outputPass = new OutputPass();
             composer.addPass(outputPass);
         }
 
         function setupLoaders() {
-            // Draco loader
             const dracoLoader = new DRACOLoader();
             dracoLoader.setDecoderPath(CONFIG.dracoPath);
             dracoLoader.setDecoderConfig({ type: 'js' });
 
-            // GLTF loader
             gltfLoader = new GLTFLoader();
             gltfLoader.setDRACOLoader(dracoLoader);
             gltfLoader.setMeshoptDecoder(MeshoptDecoder);
         }
 
         async function loadHDRI() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 new RGBELoader().load(
                     CONFIG.hdri,
                     (texture) => {
                         texture.mapping = THREE.EquirectangularReflectionMapping;
                         scene.background = texture;
                         scene.environment = pmremGenerator.fromEquirectangular(texture).texture;
-                        scene.environmentIntensity = 0.7;
+                        scene.environmentIntensity = 0.6;
                         texture.dispose();
                         console.log('✅ HDRI loaded');
                         resolve();
                     },
                     undefined,
-                    (error) => {
-                        console.error('❌ HDRI load failed:', error);
-                        reject(error);
+                    () => {
+                        console.warn('HDRI failed, continuing...');
+                        resolve();
                     }
                 );
             });
+        }
+
+        // ============================================
+        // PRE-LOAD ALL MODELS
+        // ============================================
+        async function preloadAllModels() {
+            DOM.loadingProgress.textContent = 'Loading all models...';
+
+            const loadPromises = CONFIG.models.map((url, index) => {
+                return new Promise((resolve) => {
+                    gltfLoader.load(
+                        url,
+                        (gltf) => {
+                            const model = gltf.scene;
+                            model.visible = false; // Hide by default
+
+                            let mixer = null;
+                            if (gltf.animations && gltf.animations.length > 0) {
+                                mixer = new THREE.AnimationMixer(model);
+                                gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+                            }
+
+                            model.traverse((child) => {
+                                if (child.isMesh) {
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                    if (child.material && child.material.emissive) {
+                                        child.material.emissiveIntensity = 1;
+                                    }
+                                }
+                            });
+
+                            scene.add(model);
+                            allModels[index] = { model, mixer };
+
+                            console.log(`✅ Model ${index} pre-loaded`);
+                            DOM.loadingProgress.textContent = `Loaded ${Object.keys(allModels).length}/${CONFIG.models.length} models`;
+                            resolve();
+                        },
+                        undefined,
+                        (error) => {
+                            console.error(`❌ Model ${index} failed:`, error);
+                            resolve(); // Continue even if one fails
+                        }
+                    );
+                });
+            });
+
+            await Promise.all(loadPromises);
+            console.log('✅ All models pre-loaded');
         }
 
         async function checkVRSupport() {
@@ -926,30 +775,24 @@
                     setupDesktop();
                 }
             } catch (e) {
-                console.warn('VR check failed, defaulting to desktop:', e);
                 setupDesktop();
             }
         }
 
         function setupDesktop() {
-            console.log('🖥️ Desktop mode');
             vrActive = false;
             document.body.addEventListener('click', onInitialClick, { once: true });
         }
 
         function setupVR() {
-            console.log('🥽 VR mode');
             vrActive = true;
             DOM.instructions.classList.remove('visible');
 
-            // Add VR button
             const vrButton = VRButton.createButton(renderer);
             vrButton.textContent = 'Enter VR';
             document.body.appendChild(vrButton);
 
-            // Setup VR controllers
             const controllerModelFactory = new XRControllerModelFactory();
-
             for (let i = 0; i < 2; i++) {
                 const controller = renderer.xr.getController(i);
                 const grip = renderer.xr.getControllerGrip(i);
@@ -960,28 +803,22 @@
             }
 
             renderer.xr.addEventListener('sessionstart', () => {
-                console.log('🥽 VR session started');
                 experienceStarted = true;
                 DOM.backgroundImg.style.display = 'none';
                 runSequence();
             });
 
             renderer.xr.addEventListener('sessionend', () => {
-                console.log('VR session ended, reloading...');
                 window.location.reload();
             });
         }
 
         function onInitialClick() {
             if (experienceStarted) return;
-
             experienceStarted = true;
-
-            // Resume audio context
             if (audioListener.context.state === 'suspended') {
                 audioListener.context.resume();
             }
-
             runSequence();
         }
 
@@ -990,30 +827,31 @@
         // ============================================
         async function runSequence() {
             currentScene++;
-            console.log(`\n🎬 Scene ${currentScene} starting...`);
+            console.log(`🎬 Scene ${currentScene}`);
 
-            // Show loading
             DOM.sceneLoading.style.display = 'block';
             DOM.backgroundImg.style.display = 'block';
-
-            // Hide UI elements
             hideAllUI();
 
             try {
                 await executeScene(currentScene);
             } catch (error) {
                 console.error(`❌ Scene ${currentScene} error:`, error);
-                DOM.sceneLoading.textContent = 'Error loading scene';
             } finally {
                 DOM.sceneLoading.style.display = 'none';
                 DOM.backgroundImg.style.display = 'none';
-                showInfoButtons();
             }
 
             console.log(`✅ Scene ${currentScene} ready`);
         }
 
         async function executeScene(sceneNum) {
+            // Hide all models first
+            Object.values(allModels).forEach(({ model }) => {
+                model.visible = false;
+            });
+            colliderMeshes = [];
+
             switch (sceneNum) {
                 case 0: await scene0_PreStart(); break;
                 case 1: await scene1_PostStart(); break;
@@ -1025,19 +863,13 @@
             }
         }
 
-        // Scene 0: Pre-Start (Auto-rotate, orthographic)
         async function scene0_PreStart() {
             DOM.instructions.classList.remove('visible');
             DOM.startButton.textContent = 'Start';
             DOM.startButton.style.display = 'block';
 
-            await unloadAllModels();
-
-            // Load Models 1 and 5
-            await Promise.all([
-                loadModel(0, { visible: true }),
-                loadModel(4, { visible: true })
-            ]);
+            showModel(0); // Model 1
+            showModel(4); // Model 5
 
             setupCamera({
                 type: 'orbit',
@@ -1053,7 +885,6 @@
             updatePanels('html_scene0_left', 'html_scene0_right');
         }
 
-        // Scene 1: Post-Start (Conceptual toggles)
         async function scene1_PostStart() {
             DOM.startButton.textContent = 'Next';
 
@@ -1077,17 +908,12 @@
             handleToggleClick(0);
         }
 
-        // Scene 2: Design Options
         async function scene2_DesignOptions() {
-            await unloadAllModels();
-
-            // Pre-load all 4 models
-            await Promise.all([
-                loadModel(0, { id: 'm1', visible: false }), // Model 1
-                loadModel(3, { id: 'm4', visible: false }), // Model 4
-                loadModel(2, { id: 'm3', visible: false }), // Model 3
-                loadModel(4, { id: 'm5', visible: false })  // Model 5
-            ]);
+            // Assign IDs to models
+            if (allModels[0]) allModels[0].model.userData.id = 'm1';
+            if (allModels[3]) allModels[3].model.userData.id = 'm4';
+            if (allModels[2]) allModels[2].model.userData.id = 'm3';
+            if (allModels[4]) allModels[4].model.userData.id = 'm5';
 
             setupCamera({
                 type: 'orbit',
@@ -1100,21 +926,16 @@
             });
 
             setupToggles([
-                { name: 'Option 1 (White)', id: 'view1' },
-                { name: 'Option 2 (Metal)', id: 'view2' }
+                { name: 'Option 1', id: 'view1' },
+                { name: 'Option 2', id: 'view2' }
             ]);
 
             handleToggleClick(0);
         }
 
-        // Scene 3: Orbit
         async function scene3_Orbit() {
-            await unloadAllModels();
-
-            await Promise.all([
-                loadModel(2, { visible: true }), // Model 3 (ghost)
-                loadModel(5, { visible: true })  // Model 6
-            ]);
+            showModel(2);
+            showModel(5);
 
             setupCamera({
                 type: 'orbit',
@@ -1130,10 +951,8 @@
             updatePanels('html_scene3_left', 'html_scene3_right');
         }
 
-        // Scene 4: Interior (Camera positions)
         async function scene4_Interior() {
-            await unloadAllModels();
-            await loadModel(6, { visible: true }); // Model 7 (interior)
+            showModel(6);
 
             setupToggles([
                 { name: 'Salon', id: 'cam1' },
@@ -1147,14 +966,18 @@
             handleToggleClick(0);
         }
 
-        // Scene 5: Walkthrough
         async function scene5_Walkthrough() {
-            await unloadAllModels();
+            showModel(6);
 
-            await Promise.all([
-                loadModel(6, { visible: true }),  // Interior
-                loadCollider(7)                   // Collider
-            ]);
+            // Setup collider
+            if (allModels[7]) {
+                const colliderModel = allModels[7].model;
+                colliderModel.traverse((child) => {
+                    if (child.isMesh) {
+                        colliderMeshes.push(child);
+                    }
+                });
+            }
 
             setupToggles(null);
             DOM.startButton.textContent = 'Restart';
@@ -1169,26 +992,42 @@
         }
 
         // ============================================
+        // MODEL VISIBILITY
+        // ============================================
+        function showModel(index) {
+            if (allModels[index]) {
+                allModels[index].model.visible = true;
+            }
+        }
+
+        function setModelVisibility(id, visible) {
+            Object.values(allModels).forEach(({ model }) => {
+                if (model.userData.id === id) {
+                    model.visible = visible;
+                }
+            });
+        }
+
+        // ============================================
         // TOGGLE HANDLER
         // ============================================
         function handleToggleClick(index) {
-            // Update button selection
             DOM.modelToggles.forEach((btn, i) => {
                 btn.classList.toggle('selected', i === index);
             });
 
             switch (currentScene) {
-                case 1: // Scene 1: Conceptual models
+                case 1:
                     const concepts = ['opt1', 'opt2', 'opt3'];
                     updatePanels(
                         `html_scene1_${concepts[index]}_left`,
                         `html_scene1_${concepts[index]}_right`
                     );
-                    DOM.description.textContent = `Viewing: ${DOM.modelToggles[index].textContent}`;
+                    DOM.description.textContent = DOM.modelToggles[index].textContent;
                     DOM.description.style.display = 'block';
                     break;
 
-                case 2: // Scene 2: Design options
+                case 2:
                     if (index === 0) {
                         setModelVisibility('m1', true);
                         setModelVisibility('m4', true);
@@ -1206,7 +1045,7 @@
                     DOM.description.style.display = 'block';
                     break;
 
-                case 4: // Scene 4: Interior cameras
+                case 4:
                     const cameras = [
                         { pos: { x: 1, y: 1.6, z: 1.6 }, look: { x: 1, y: 1.6, z: 1.5 }, fov: 80 },
                         { pos: { x: -2, y: 1.6, z: 3.1 }, look: { x: -2.1, y: 1.6, z: 3.2 }, fov: 80 },
@@ -1249,13 +1088,11 @@
                 pointerLockControls.unlock();
             }
 
-            // Determine camera type
             let newCam = config.cameraType === 'orthographic' ? orthographicCamera : perspectiveCamera;
             if (config.type === 'pointerlock') {
                 newCam = perspectiveCamera;
             }
 
-            // Swap camera if needed
             if (camera !== newCam) {
                 if (playerRig.children.includes(camera)) {
                     playerRig.remove(camera);
@@ -1265,7 +1102,6 @@
                 camera.add(audioListener);
                 orbitControls.object = camera;
 
-                // Update composer
                 composer.passes.forEach(pass => {
                     if (pass.camera) pass.camera = camera;
                 });
@@ -1316,138 +1152,31 @@
         }
 
         // ============================================
-        // MODEL MANAGEMENT
-        // ============================================
-        async function loadModel(index, config = {}) {
-            return new Promise((resolve, reject) => {
-                gltfLoader.load(
-                    CONFIG.models[index],
-                    (gltf) => {
-                        const model = gltf.scene;
-
-                        if (config.pos) {
-                            model.position.set(config.pos.x || 0, config.pos.y || 0, config.pos.z || 0);
-                        }
-
-                        model.visible = config.visible !== undefined ? config.visible : true;
-                        model.userData.id = config.id || null;
-
-                        let mixer = null;
-                        if (gltf.animations && gltf.animations.length > 0) {
-                            mixer = new THREE.AnimationMixer(model);
-                            gltf.animations.forEach(clip => mixer.clipAction(clip).play());
-                        }
-
-                        model.traverse((child) => {
-                            if (child.isMesh) {
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                                if (child.material && child.material.emissive) {
-                                    child.material.emissiveIntensity = 1;
-                                }
-                            }
-                        });
-
-                        scene.add(model);
-                        loadedModels.push({ model, mixer });
-
-                        console.log(`✅ Model ${index} loaded`);
-                        resolve({ model, mixer });
-                    },
-                    undefined,
-                    (error) => {
-                        console.error(`❌ Model ${index} failed:`, error);
-                        reject(error);
-                    }
-                );
-            });
-        }
-
-        async function loadCollider(index) {
-            return new Promise((resolve, reject) => {
-                gltfLoader.load(
-                    CONFIG.models[index],
-                    (gltf) => {
-                        const model = gltf.scene;
-                        model.visible = false;
-
-                        model.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material = new THREE.MeshBasicMaterial({
-                                    visible: false,
-                                    side: THREE.DoubleSide
-                                });
-                                colliderMeshes.push(child);
-                            }
-                        });
-
-                        scene.add(model);
-                        loadedModels.push({ model, mixer: null });
-
-                        console.log(`✅ Collider loaded (${colliderMeshes.length} meshes)`);
-                        resolve();
-                    },
-                    undefined,
-                    (error) => {
-                        console.error('❌ Collider load failed:', error);
-                        reject(error);
-                    }
-                );
-            });
-        }
-
-        function setModelVisibility(id, visible) {
-            const entry = loadedModels.find(m => m.model.userData.id === id);
-            if (entry) {
-                entry.model.visible = visible;
-            }
-        }
-
-        async function unloadAllModels() {
-            loadedModels.forEach(({ model, mixer }) => {
-                if (mixer) mixer.stopAllAction();
-
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        if (child.geometry) child.geometry.dispose();
-                        if (child.material) {
-                            if (Array.isArray(child.material)) {
-                                child.material.forEach(mat => mat.dispose());
-                            } else {
-                                child.material.dispose();
-                            }
-                        }
-                    }
-                });
-
-                scene.remove(model);
-            });
-
-            loadedModels = [];
-            colliderMeshes = [];
-
-            console.log('🗑️ All models unloaded');
-        }
-
-        // ============================================
         // UI MANAGEMENT
         // ============================================
         function setupToggles(config) {
-            DOM.modelLabel.style.display = config ? 'block' : 'none';
+            if (config) {
+                DOM.modelLabel.style.display = 'block';
+                DOM.modelToggleContainer.classList.add('visible');
 
-            DOM.modelToggles.forEach((btn, i) => {
-                if (config && i < config.length) {
-                    btn.textContent = config[i].name;
-                    btn.dataset.id = config[i].id;
-                    btn.style.display = 'block';
-                    btn.classList.remove('selected');
-                } else {
-                    btn.style.display = 'none';
+                DOM.modelToggles.forEach((btn, i) => {
+                    if (i < config.length) {
+                        btn.textContent = config[i].name;
+                        btn.dataset.id = config[i].id;
+                        btn.style.display = 'block';
+                        btn.classList.remove('selected');
+                    } else {
+                        btn.style.display = 'none';
+                    }
+                });
+
+                if (config.length > 0) {
+                    DOM.modelToggles[0].classList.add('selected');
                 }
-            });
-
-            if (config && config.length > 0) {
-                DOM.modelToggles[0].classList.add('selected');
+            } else {
+                DOM.modelLabel.style.display = 'none';
+                DOM.modelToggleContainer.classList.remove('visible');
+                DOM.modelToggles.forEach(btn => btn.style.display = 'none');
             }
         }
 
@@ -1471,27 +1200,11 @@
 
         function hideAllUI() {
             DOM.modelLabel.style.display = 'none';
+            DOM.modelToggleContainer.classList.remove('visible');
             DOM.modelToggles.forEach(btn => btn.style.display = 'none');
             DOM.description.style.display = 'none';
             DOM.leftPanel.classList.remove('visible');
             DOM.rightPanel.classList.remove('visible');
-            hideInfoButtons();
-        }
-
-        function showInfoButtons() {
-            if (!vrActive) {
-                ['fullscreenButton', 'projectInfoButton', 'studioInfoButton', 'creatorsNoteButton', 'hintButton'].forEach(id => {
-                    const btn = document.getElementById(id);
-                    if (btn) btn.style.display = 'block';
-                });
-            }
-        }
-
-        function hideInfoButtons() {
-            ['fullscreenButton', 'projectInfoButton', 'studioInfoButton', 'creatorsNoteButton', 'hintButton'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.style.display = 'none';
-            });
         }
 
         // ============================================
@@ -1502,19 +1215,16 @@
 
             const playerPos = pointerLockControls.getObject().position;
 
-            // Gravity and floor detection
             raycaster.set(playerPos, new THREE.Vector3(0, -1, 0));
             const floorHits = raycaster.intersectObjects(colliderMeshes);
             const onFloor = floorHits.length > 0 && floorHits[0].distance < CONFIG.playerHeight + 0.1;
 
             if (onFloor) {
                 playerVelocity.y = Math.max(0, playerVelocity.y);
-
                 if (keys.jump) {
                     playerVelocity.y = CONFIG.jumpVelocity;
                     keys.jump = false;
                 }
-
                 const floorDist = floorHits[0].distance;
                 if (floorDist < CONFIG.playerHeight) {
                     playerPos.y += (CONFIG.playerHeight - floorDist);
@@ -1525,11 +1235,9 @@
 
             playerPos.y += playerVelocity.y * delta;
 
-            // Friction
             playerVelocity.x -= playerVelocity.x * 10.0 * delta;
             playerVelocity.z -= playerVelocity.z * 10.0 * delta;
 
-            // Input
             const direction = new THREE.Vector3();
             direction.z = Number(keys.forward) - Number(keys.backward);
             direction.x = Number(keys.right) - Number(keys.left);
@@ -1538,17 +1246,10 @@
             if (keys.forward || keys.backward) playerVelocity.z -= direction.z * currentMoveSpeed * delta;
             if (keys.left || keys.right) playerVelocity.x -= direction.x * currentMoveSpeed * delta;
 
-            // Apply movement
             pointerLockControls.moveRight(-playerVelocity.x * delta);
             pointerLockControls.moveForward(-playerVelocity.z * delta);
 
-            // Collision detection
-            const checkPos = new THREE.Vector3(
-                playerPos.x,
-                playerPos.y - CONFIG.playerHeight / 2,
-                playerPos.z
-            );
-
+            const checkPos = new THREE.Vector3(playerPos.x, playerPos.y - CONFIG.playerHeight / 2, playerPos.z);
             const directions = [
                 new THREE.Vector3(1, 0, 0),
                 new THREE.Vector3(-1, 0, 0),
@@ -1559,18 +1260,15 @@
             directions.forEach(dir => {
                 raycaster.set(checkPos, dir);
                 const wallHits = raycaster.intersectObjects(colliderMeshes);
-
                 if (wallHits.length > 0 && wallHits[0].distance < CONFIG.playerRadius) {
                     const penetration = CONFIG.playerRadius - wallHits[0].distance;
                     playerPos.x -= dir.x * (penetration + 0.01);
                     playerPos.z -= dir.z * (penetration + 0.01);
-
                     if (dir.x !== 0) playerVelocity.x = 0;
                     if (dir.z !== 0) playerVelocity.z = 0;
                 }
             });
 
-            // Update floor state
             raycaster.set(playerPos, new THREE.Vector3(0, -1, 0));
             const finalFloor = raycaster.intersectObjects(colliderMeshes);
             playerOnFloor = finalFloor.length > 0 && finalFloor[0].distance < CONFIG.playerHeight + 0.1;
@@ -1580,13 +1278,11 @@
         // EVENT LISTENERS
         // ============================================
         function setupEventListeners() {
-            // Start button
             DOM.startButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 runSequence();
             });
 
-            // Toggle buttons
             DOM.modelToggles.forEach((btn, i) => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1594,14 +1290,6 @@
                 });
             });
 
-            // Info panels
-            document.getElementById('projectInfoButton').addEventListener('click', () => togglePanel('projectInfoPanel'));
-            document.getElementById('studioInfoButton').addEventListener('click', () => togglePanel('studioInfoPanel'));
-            document.getElementById('hintButton').addEventListener('click', () => togglePanel('hintPanel'));
-            document.getElementById('creatorsNoteButton').addEventListener('click', () => togglePanel('creatorsNotePanel'));
-            document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
-
-            // Keyboard
             document.addEventListener('keydown', (e) => {
                 if (vrActive || !pointerLockControls.isLocked) return;
 
@@ -1615,7 +1303,13 @@
                         keys.sprint = true;
                         currentMoveSpeed = CONFIG.baseMoveSpeed * CONFIG.sprintMultiplier;
                         break;
-                    case 'KeyF': toggleFullscreen(); break;
+                    case 'KeyF':
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen();
+                        } else {
+                            document.exitFullscreen();
+                        }
+                        break;
                 }
             });
 
@@ -1635,51 +1329,22 @@
                 }
             });
 
-            // Window resize
-            window.addEventListener('resize', onWindowResize);
-        }
+            window.addEventListener('resize', () => {
+                const aspect = window.innerWidth / window.innerHeight;
 
-        function togglePanel(panelId) {
-            const panel = document.getElementById(panelId);
-            const isVisible = panel.classList.contains('visible');
+                perspectiveCamera.aspect = aspect;
+                perspectiveCamera.updateProjectionMatrix();
 
-            // Hide all panels
-            document.querySelectorAll('.info-panel').forEach(p => p.classList.remove('visible'));
+                const frustum = CONFIG.orthoFrustumSize;
+                orthographicCamera.left = frustum * aspect / -2;
+                orthographicCamera.right = frustum * aspect / 2;
+                orthographicCamera.top = frustum / 2;
+                orthographicCamera.bottom = frustum / -2;
+                orthographicCamera.updateProjectionMatrix();
 
-            // Show clicked panel if it wasn't visible
-            if (!isVisible) {
-                panel.classList.add('visible');
-            }
-        }
-
-        function closePanel(panelId) {
-            document.getElementById(panelId).classList.remove('visible');
-        }
-        window.closePanel = closePanel; // Expose to onclick
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(console.error);
-            } else {
-                document.exitFullscreen().catch(console.error);
-            }
-        }
-
-        function onWindowResize() {
-            const aspect = window.innerWidth / window.innerHeight;
-
-            perspectiveCamera.aspect = aspect;
-            perspectiveCamera.updateProjectionMatrix();
-
-            const frustum = CONFIG.orthoFrustumSize;
-            orthographicCamera.left = frustum * aspect / -2;
-            orthographicCamera.right = frustum * aspect / 2;
-            orthographicCamera.top = frustum / 2;
-            orthographicCamera.bottom = frustum / -2;
-            orthographicCamera.updateProjectionMatrix();
-
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
         // ============================================
@@ -1688,22 +1353,18 @@
         function animate() {
             const delta = clock.getDelta();
 
-            // Update controls
             if (orbitControls.enabled) {
                 orbitControls.update(delta);
             }
 
-            // Update player physics (Scene 5)
             if (currentScene === 5 && !vrActive) {
                 updatePlayer(delta);
             }
 
-            // Update animations
-            loadedModels.forEach(({ mixer }) => {
+            Object.values(allModels).forEach(({ mixer }) => {
                 if (mixer) mixer.update(delta);
             });
 
-            // Render
             if (renderer.xr.isPresenting) {
                 renderer.render(scene, camera);
             } else {
@@ -1712,11 +1373,11 @@
         }
 
         // ============================================
-        // START APPLICATION
+        // START
         // ============================================
         init().catch(error => {
-            console.error('Initialization failed:', error);
-            DOM.loading.innerHTML = '<div class="loading-text">Error loading experience</div>';
+            console.error('Init failed:', error);
+            DOM.loading.innerHTML = '<div class="loading-text">Error</div>';
         });
     </script>
 </body>
