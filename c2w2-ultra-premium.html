@@ -510,32 +510,37 @@
 
                 Analytics.trackSceneChange(sceneNum);
 
-                // Cross-fade transition
+                // Simplified transition (fixed)
                 const overlay = document.getElementById('sceneTransition');
 
-                // Fade out with blur
-                gsap.to(overlay, {
-                    opacity: 1,
-                    filter: 'blur(10px)',
-                    duration: 0.8,
-                    ease: 'power2.inOut',
-                    onComplete: async () => {
-                        // Load new scene
-                        this.currentScene = sceneNum;
-                        await this.app.executeScene(sceneNum);
+                try {
+                    // Fade to black
+                    await gsap.to(overlay, {
+                        opacity: 1,
+                        duration: 0.5,
+                        ease: 'power2.inOut'
+                    });
 
-                        // Fade in
-                        gsap.to(overlay, {
-                            opacity: 0,
-                            filter: 'blur(0px)',
-                            duration: 0.8,
-                            ease: 'power2.inOut',
-                            onComplete: () => {
-                                this.isTransitioning = false;
-                            }
-                        });
-                    }
-                });
+                    // Load new scene
+                    this.currentScene = sceneNum;
+                    await this.app.executeScene(sceneNum);
+
+                    // Small delay to ensure scene is ready
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // Fade back in
+                    await gsap.to(overlay, {
+                        opacity: 0,
+                        duration: 0.5,
+                        ease: 'power2.inOut'
+                    });
+
+                } catch (error) {
+                    console.error('Transition error:', error);
+                    overlay.style.opacity = '0'; // Force show scene even if error
+                } finally {
+                    this.isTransitioning = false;
+                }
             }
 
             getCurrentScene() {
