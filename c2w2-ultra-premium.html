@@ -197,10 +197,16 @@
 
         <!-- Bottom Bar -->
         <div class="absolute bottom-5 left-5 right-5 flex items-end justify-between pointer-events-auto">
-            <button id="startButton" aria-label="Start Experience"
-                    class="glass-panel px-10 py-4 rounded-xl text-sm font-medium tracking-wider uppercase hover:bg-white/20 transition-all duration-300 transform hover:scale-105 hidden">
-                Start
-            </button>
+            <div class="flex gap-3">
+                <button id="previousButton" aria-label="Previous Scene"
+                        class="glass-panel px-8 py-4 rounded-xl text-sm font-medium tracking-wider uppercase hover:bg-white/20 transition-all duration-300 transform hover:scale-105 hidden">
+                    Previous
+                </button>
+                <button id="nextButton" aria-label="Next Scene"
+                        class="glass-panel px-10 py-4 rounded-xl text-sm font-medium tracking-wider uppercase hover:bg-white/20 transition-all duration-300 transform hover:scale-105 hidden">
+                    Start
+                </button>
+            </div>
 
             <div id="description" class="glass-panel px-7 py-4 rounded-xl text-sm tracking-wide max-w-xl mx-auto hidden">
                 <!-- Description text -->
@@ -382,7 +388,7 @@
             ],
             hdri: {
                 day: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr',
-                night: 'https://raw.githubusercontent.com/decentralize-dfw/vea_001/main/RealismHDRI-_equirectangular-jpg_VR360_neon_drenched_skyscrapers_1656103290_10361044.hdr' // Using same for now
+                night: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/equirectangular/moonless_golf_1k.hdr'
             },
             dracoPath: 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/',
             physics: {
@@ -394,7 +400,7 @@
                 jumpVelocity: 6
             },
             camera: {
-                defaultFOV: 75,
+                defaultFOV: 90,
                 orthoFrustumSize: 40
             },
             quality: {
@@ -607,7 +613,8 @@
                     loadingProgress: document.getElementById('loadingProgress'),
                     backgroundImg: document.getElementById('backgroundImg'),
                     instructions: document.getElementById('instructions'),
-                    startButton: document.getElementById('startButton'),
+                    previousButton: document.getElementById('previousButton'),
+                    nextButton: document.getElementById('nextButton'),
                     modelLabel: document.getElementById('modelLabel'),
                     modelToggleContainer: document.getElementById('modelToggleContainer'),
                     description: document.getElementById('description'),
@@ -656,7 +663,6 @@
                 this.DOM.loading.classList.add('opacity-0');
                 setTimeout(() => {
                     this.DOM.loading.classList.add('hidden');
-                    this.DOM.backgroundImg.classList.remove('hidden');
                     this.DOM.instructions.classList.remove('hidden');
                 }, 1000);
 
@@ -987,8 +993,9 @@
             }
 
             async scene0_PreStart() {
-                this.DOM.startButton.textContent = 'Start';
-                this.DOM.startButton.classList.remove('hidden');
+                this.DOM.nextButton.textContent = 'Start';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.add('hidden');
 
                 this.showModel(0);
                 this.showModel(4);
@@ -1008,7 +1015,9 @@
             }
 
             async scene1_PostStart() {
-                this.DOM.startButton.textContent = 'Next';
+                this.DOM.nextButton.textContent = 'Next';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
 
                 this.showModel(0);
                 this.showModel(4);
@@ -1087,8 +1096,8 @@
                     { name: 'Bedroom 2 WC', id: 'cam6' }
                 ]);
 
-                // Add hotspots
-                this.createHotspots();
+                // Hotspots removed per user request
+                // this.createHotspots();
 
                 this.handleToggleClick(0);
             }
@@ -1111,7 +1120,9 @@
                 }
 
                 this.setupToggles(null);
-                this.DOM.startButton.textContent = 'Restart';
+                this.DOM.nextButton.textContent = 'Restart';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
 
                 this.setupCameraGSAP({
                     type: 'pointerlock',
@@ -1460,10 +1471,19 @@
             }
 
             setupEventListeners() {
-                this.DOM.startButton.addEventListener('click', (e) => {
+                this.DOM.nextButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.sceneManager.transitionTo(this.sceneManager.getCurrentScene() + 1);
-                    Analytics.trackButtonClick('Start/Next Button');
+                    Analytics.trackButtonClick('Next Button');
+                });
+
+                this.DOM.previousButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const prevScene = this.sceneManager.getCurrentScene() - 1;
+                    if (prevScene >= 0) {
+                        this.sceneManager.transitionTo(prevScene);
+                    }
+                    Analytics.trackButtonClick('Previous Button');
                 });
 
                 this.DOM.dayNightToggle.addEventListener('click', async () => {
