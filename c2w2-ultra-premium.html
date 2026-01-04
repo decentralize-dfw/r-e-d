@@ -1159,6 +1159,11 @@
             async scene4_Interior() {
                 this.showModel(6);
 
+                // Update button text
+                this.DOM.nextButton.textContent = 'Next';
+                this.DOM.nextButton.classList.remove('hidden');
+                this.DOM.previousButton.classList.remove('hidden');
+
                 this.setupToggles([
                     { name: 'Salon', id: 'cam1' },
                     { name: 'Kitchen', id: 'cam2' },
@@ -1673,8 +1678,14 @@
             setupEventListeners() {
                 this.DOM.nextButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.sceneManager.transitionTo(this.sceneManager.getCurrentScene() + 1);
-                    Analytics.trackButtonClick('Next Button');
+                    // If button says "Restart", reload the page
+                    if (this.DOM.nextButton.textContent === 'Restart') {
+                        window.location.reload();
+                        Analytics.trackButtonClick('Restart');
+                    } else {
+                        this.sceneManager.transitionTo(this.sceneManager.getCurrentScene() + 1);
+                        Analytics.trackButtonClick('Next Button');
+                    }
                 });
 
                 this.DOM.previousButton.addEventListener('click', (e) => {
@@ -1716,6 +1727,13 @@
                                 document.documentElement.requestFullscreen();
                             } else {
                                 document.exitFullscreen();
+                            }
+                            break;
+                        case 'Escape':
+                            // In Scene 5, unlock pointer and go back
+                            if (this.sceneManager.getCurrentScene() === 5 && this.pointerLockControls.isLocked) {
+                                this.pointerLockControls.unlock();
+                                this.sceneManager.transitionTo(4); // Go back to Scene 4
                             }
                             break;
                     }
